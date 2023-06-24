@@ -2,7 +2,10 @@ module web-server
 
 go 1.19
 
-require github.com/gin-gonic/gin v1.9.1
+require (
+	github.com/DaveSharma-Hub/Blazingly-Fast-Database/bf-database/web-server/type-declaration v0.0.0-20230624145254-5427e80347ab
+	github.com/gin-gonic/gin v1.9.1
+)
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
