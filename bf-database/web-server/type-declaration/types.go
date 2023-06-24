@@ -1,4 +1,4 @@
-package types
+package type-declaration
 
 type databaseInput struct{
 	InputCommandType string `json:"inputcommandtype"`
