@@ -1,4 +1,4 @@
-package typeDeclaration
+package main
 
 type databaseInput struct{
 	InputCommandType string `json:"inputcommandtype"`
@@ -8,6 +8,22 @@ type databaseInput struct{
 }
 // inputcommand eg. GET <header/key value> FROM <table name>
 // INSERT <key value> INTO <table name> DATA
+
+type tableHeadersType struct{
+	HeaderName string `json:"headername"`
+	HeaderDataType string `json:"headerdatatype"`
+}
+
+type createTableType struct {
+	TableName string `json:"tablename"`
+	TableHeaders []tableHeadersType `json:"tableheaders"`
+	PrimaryKey tableHeadersType `json:"primarykey"`
+}
+
+type queryTableType struct {
+	TableNameToQuery string `json:"tablenametoquery"`
+	PrimaryKey []tableHeadersType `json:"primarykey"`
+}
 
 type databaseOutput struct{
 	Output string `json:"output"`

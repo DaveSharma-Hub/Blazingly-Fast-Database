@@ -3,7 +3,6 @@ package main
 import (
     "net/http"
     "github.com/gin-gonic/gin"
-	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/bf-database/web-server/type-declaration"
 )
 
 type databaseInput struct{
@@ -36,7 +35,7 @@ func postQueryDatabaseData(context *gin.Context){
 	if err :=  context.BindJSON(&input); err != nil{
 		return
 	}
-	go queryDatabase(input)
+	go queryDatabaseWorker(input)
 	context.IndentedJSON(http.StatusOK,)
 }
 func postCreateTable(context *gin.Context){
@@ -55,7 +54,7 @@ func postAddData(context *gin.Context){
 	if err :=  context.BindJSON(&input); err != nil{
 		return
 	}
-	go addNewData(databaseInput)
+	go addNewDataWorker(databaseInput)
 	context.IndentedJSON(http.StatusOK,)
 }
 func postRemoveData(context *gin.Context){
@@ -64,7 +63,7 @@ func postRemoveData(context *gin.Context){
 	if err :=  context.BindJSON(&input); err != nil{
 		return
 	}
-	go removeData(databaseInput)
+	go removeDataWorker(databaseInput)
 	context.IndentedJSON(http.StatusOK,)
 }
 
@@ -83,7 +82,7 @@ func queryDatabase(databaseInput input){
 }
 
 func addNewData(databaseInput) {
-	setNewCachData(databaseInput)
+	setNewCacheData(databaseInput)
 	persistNewData(databaseInput)
 }
 
@@ -93,12 +92,38 @@ func removeData(databaseInput) {
 }
 
 
+func testGet(c *gin.Context){
+	c.IndentedJSON(http.StatusOK, tmpData)
+}
+
+
+type testType struct{
+	input string `json:"input"`
+}
+
+func testPost(c *gin.Context){
+	var testValue testType
+
+	// Call BindJSON to bind the received JSON to
+    // newAlbum.
+    if err := c.BindJSON(&testValue); err != nil {
+        return
+    }
+	newValue := databaseOutput{Output:testValue.input, Data:"new data"}
+
+    // Add the new album to the slice.
+    tmpData = append(tmpData, newValue)
+    c.IndentedJSON(http.StatusCreated, tmpData)
+}
+
 func main(){
     router := gin.Default()
-	router.POST("/queryData", postQueryDatabaseData)
-	router.POST("/createTable", postCreateTable)
-	router.POST("/addData", postAddData)
-	router.POST("/removeData", postRemoveData)
+	router.GET("/test",testGet)
+	router.POST("/test",testPost)
+	// router.POST("/queryData", postQueryDatabaseData)
+	// router.POST("/createTable", postCreateTable)
+	// router.POST("/addData", postAddData)
+	// router.POST("/removeData", postRemoveData)
 	router.Run("localhost:8000")
 }
 
