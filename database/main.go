@@ -4,6 +4,9 @@ import (
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/commandArgs"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/server"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/cache"
+	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore"
+	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/dataCacheClient"
 	"os"
 ) 
 
@@ -58,16 +61,19 @@ func main(){
 
     arguments := commandArgs.ParseInput(inputArguments)
 
-	// fmt.Println("Size: %d", arguments.CacheMaxSize)
-
+	// perisistentStore := persistentStoreClient.InitPersistentStoreClient();
+	// pass into InitCacheClient below
 	dataQueryInMemoryCacheClient := cacheClient.InitCacheClient(arguments.CacheMaxSize);
-	// // perisitentStoreClient := persistentStoreClient.InitPersistentStoreClient();
 
-	cacheClient.ExecuteOperation(dataQueryInMemoryCacheClient,"1",func() string{
-		return "1"
-	})
+	dataAndCacheClient := dataCacheClient.CreateFunctionMapWrapper(dataQueryInMemoryCacheClient)
 
-	clientRouter := server.InitServer()
+	// cacheClient.ExecuteOperation(dataQueryInMemoryCacheClient,"1", perisitentStoreClient.GetData)
+
+	// cacheClient.ExecuteOperation(dataQueryInMemoryCacheClient,"1",func(key string) globalTypes.Payload{
+	// 	return globalTypes.CreatePayload([][]string{{"id","1","string"},{"name","John","string"}})
+	// })
+
+	clientRouter := server.InitServer(dataAndCacheClient)
 	server.RunServer(clientRouter)
 
 

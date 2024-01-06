@@ -2,20 +2,17 @@ package lruCache
 
 import (
 	"fmt"
+    "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
 )
-
-type Payload struct{
-    value string
-}
 
 type Node struct{
     key string
     next *Node
     prev *Node
-    item Payload
+    item globalTypes.Payload
 }
 
-type PersistedItemConversion func() string
+type PersistedItemConversion func(key string) globalTypes.Payload
 
 type LinkedList struct{
     head *Node
@@ -29,7 +26,7 @@ type LRUCache struct{
     maxSize int64
 }
 
-func initNode(key string, nodeItem Payload)*Node{
+func initNode(key string, nodeItem globalTypes.Payload)*Node{
     return &Node{ key:key, next: nil, prev: nil, item: nodeItem}
 }
 
@@ -107,7 +104,7 @@ func InitLRUCache(maxSize int64)*LRUCache{
     return &LRUCache{ list: initLinkedList(), lruMap: make(map[string]*Node), maxSize: maxSize}
 }
 
-func GetItem(cache *LRUCache,key string, fnCallback PersistedItemConversion)Payload{
+func GetItem(cache *LRUCache,key string, fnCallback PersistedItemConversion)globalTypes.Payload{
     var item *Node = cache.lruMap[key]
     if item!=nil {
         // remove from position
@@ -121,8 +118,8 @@ func GetItem(cache *LRUCache,key string, fnCallback PersistedItemConversion)Payl
             delete(cache.lruMap,removedItem.key)
         }
         //tmp item, would get from perisitent store
-		value := fnCallback()
-        newItem := initNode(key, Payload{value:value})
+		value := fnCallback(key)
+        newItem := initNode(key, value)
         cache.lruMap[key] = newItem
         pushToLinkedList(cache.list,newItem)
         return newItem.item

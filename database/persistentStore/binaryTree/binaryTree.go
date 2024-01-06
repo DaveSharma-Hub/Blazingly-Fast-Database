@@ -1,14 +1,12 @@
-// Online Go compiler to run Golang program online
-// Print "Hello World!" message
-
 package binaryTree
-import "fmt"
+import (
+	"fmt"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/cache/types"
+)
 
 type BTreeNode struct {
     key string
-    begByte int64
-    endByte int64
-	midByte int64
+    value globalTypes.Payload
 	children []*BTreeNode
 }
 

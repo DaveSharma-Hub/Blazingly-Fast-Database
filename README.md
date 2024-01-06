@@ -4,7 +4,7 @@ Custom relational SQL database created in Golang.
 
 Execute
 
-```./database --m=<MAX_CACHED_ITEMS>```
+```./database --mc=<MAX_CACHED_ITEMS>```
 
 Arguments
 

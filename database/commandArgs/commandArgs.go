@@ -4,10 +4,11 @@ import (
 	"strings"
 	"strconv"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
+	"fmt"
 )
 
 func ParseInput(arguments []string)globalTypes.CommandLineArguments{
-	var commandLineArgs globalTypes.CommandLineArguments
+	commandLineArgs := globalTypes.CommandLineArguments{CacheMaxSize:10000}
 	for i := 0; i<len(arguments) ; i++ {
 		arg := strings.Split(arguments[i],"=")
 		var argType string = arg[0]
@@ -19,11 +20,10 @@ func ParseInput(arguments []string)globalTypes.CommandLineArguments{
 				commandLineArgs.CacheMaxSize = size
 			}else{
 				panic(err)
-				commandLineArgs.CacheMaxSize = 10000
 			}
-			
 		default:
 			// do nothing
+			fmt.Println("Cache set to default of 10000 items")
 		}
 	}
 	return commandLineArgs
