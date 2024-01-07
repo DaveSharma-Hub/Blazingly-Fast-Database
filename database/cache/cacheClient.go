@@ -10,7 +10,7 @@ func InitCacheClient(maxCachedItems int64)*lruCache.LRUCache{
 	return inMemoryLRUCache
 }
 
-func ExecuteOperation(inMemoryLRUCache *lruCache.LRUCache, key string, fnCallback lruCache.PersistedItemConversion)globalTypes.Payload{
+func ExecuteOperationGetItem(inMemoryLRUCache *lruCache.LRUCache, key string, fnCallback lruCache.PersistedItemConversion)globalTypes.Payload{
 	return lruCache.GetItem(inMemoryLRUCache, key, fnCallback);
 }
 

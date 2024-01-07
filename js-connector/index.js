@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { unmarshall } = require('./util/utilFunctions');
 
 class BFDB {
     constructor(databaseEndpoint){
@@ -49,6 +50,16 @@ class BFDB {
         }catch(e){
             console.log(e);
         }
+    }
+
+    async test(){
+        try{
+            const endpoint = `${this.databaseEndpoint}/test`
+            const result = await axios.get(endpoint);
+            return unmarshall(JSON.parse(result.data));
+        }catch(e){
+            console.log(e);
+        }   
     }
 
 }

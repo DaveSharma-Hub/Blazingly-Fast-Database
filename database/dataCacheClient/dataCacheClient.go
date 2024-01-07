@@ -15,11 +15,11 @@ type DataCacheClientReturnType map[string] DataCacheExecutionType
 func CreateFunctionMapWrapper(dataQueryInMemoryCacheClient *lruCache.LRUCache)DataCacheClientReturnType{
 	functionMap := make(map[string] DataCacheExecutionType)
 
-	functionMap["GetData"] = func(key string, value globalTypes.Payload)globalTypes.Payload{
-			return cacheClient.ExecuteOperation(dataQueryInMemoryCacheClient,key, func(storeKey string)globalTypes.Payload{
-				return persistentStoreClient.GetData(storeKey)
-			})
-		}
+	functionMap["Test"] = func(key string, value globalTypes.Payload)globalTypes.Payload{
+		return cacheClient.ExecuteOperationGetItem(dataQueryInMemoryCacheClient,key, func(storeKey string)globalTypes.Payload{
+			return persistentStoreClient.GetData(storeKey)
+		})
+	}
 
 	return functionMap
 }

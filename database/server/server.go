@@ -8,8 +8,9 @@ import (
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/dataCacheClient"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
 	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore"
+	"fmt"
+	"encoding/json"
 )
-
 
 type FunctionWrapperType func(*gin.Context, dataCacheClient.DataCacheExecutionType)
 
@@ -24,9 +25,13 @@ var tmpData = []databaseOutput{
 }
 
 func testGet(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
-	returnData := executeFn("1", globalTypes.CreateEmptyPayload())
-	fmt.Println(returnData)	
-	c.IndentedJSON(http.StatusOK, returnData)
+	var returnData globalTypes.Payload = executeFn("1", globalTypes.CreateEmptyPayload())
+	jsonResult, err := json.Marshal(returnData.Item)
+	if err!=nil {
+		fmt.Println("ERROR")
+	}
+	fmt.Println(returnData)
+	c.JSON(http.StatusOK, string(jsonResult))
 }
 
 func CreateFunctionWrapper(inputFn FunctionWrapperType, client dataCacheClient.DataCacheClientReturnType, functionName string)gin.HandlerFunc{
@@ -37,7 +42,7 @@ func CreateFunctionWrapper(inputFn FunctionWrapperType, client dataCacheClient.D
 
 func InitServer(client dataCacheClient.DataCacheClientReturnType)*gin.Engine{
     router := gin.Default()
-	router.GET("/test",CreateFunctionWrapper(testGet,client, "GetData"))
+	router.GET("/test",CreateFunctionWrapper(testGet,client, "Test"))
 	// router.POST("/test",testPost)
 	// router.POST("/queryData", postQueryDatabaseData)
 	// router.POST("/createTable", postCreateTable)
