@@ -1,6 +1,6 @@
 # Fast-DB
 
-Custom relational SQL database created in Golang.
+Custom non-relational NoSQL database created in Golang.
 
 Execute
 
