@@ -14,18 +14,30 @@ import (
 
 type FunctionWrapperType func(*gin.Context, dataCacheClient.DataCacheExecutionType)
 
-type databaseOutput struct{
-	Output string `json:"output"`
-	Data string `json:"data"`
+type PostQueryInputType struct{
+	TableName string `json:"table_name" binding:"required"`
+	PartitionKey string `json:"partition_key" binding:"required"`
 }
 
-var tmpData = []databaseOutput{
-	{Output: "Blue Train", Data: "John Coltrane"},
-	{Output: "Blue Train", Data: "John Coltrane"},
-}
+// type databaseOutput struct{
+// 	Output string `json:"output"`
+// 	Data string `json:"data"`
+// }
 
-func testGet(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
-	var returnData globalTypes.Payload = executeFn("Users", "First", globalTypes.CreateEmptyPayload())
+// var tmpData = []databaseOutput{
+// 	{Output: "Blue Train", Data: "John Coltrane"},
+// 	{Output: "Blue Train", Data: "John Coltrane"},
+// }
+
+func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
+	var inputData PostQueryInputType
+
+	if err:= c.ShouldBindJSON(&inputData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	var returnData globalTypes.Payload = executeFn(inputData.TableName, inputData.PartitionKey, globalTypes.CreateEmptyPayload())
 	jsonResult, err := json.Marshal(returnData.Item)
 	if err!=nil {
 		fmt.Println("ERROR")
@@ -42,9 +54,9 @@ func CreateFunctionWrapper(inputFn FunctionWrapperType, client dataCacheClient.D
 
 func InitServer(client dataCacheClient.DataCacheClientReturnType)*gin.Engine{
     router := gin.Default()
-	router.GET("/test",CreateFunctionWrapper(testGet,client, "Test"))
+	//router.GET("/test",CreateFunctionWrapper(testGet,client, "QueryData"))
 	// router.POST("/test",testPost)
-	// router.POST("/queryData", postQueryDatabaseData)
+	router.POST("/queryData", CreateFunctionWrapper(postQueryDatabaseData, client, "QueryData"))
 	// router.POST("/createTable", postCreateTable)
 	// router.POST("/addData", postAddData)
 	// router.POST("/removeData", postRemoveData)

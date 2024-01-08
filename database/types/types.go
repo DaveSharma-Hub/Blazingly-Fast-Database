@@ -22,7 +22,7 @@ type TableSchema struct{
 	TableName string
 }
 
-func CreateTableSchema(input [][]string)TableSchema{
+func CreateTableSchema(tableName string, input [][]string)TableSchema{
 	var newSchema TableSchema
 	newSchema.Attributes = make(map[string] AtomicAttribute)
 	for i:=0; i<len(input); i++ {
@@ -31,6 +31,7 @@ func CreateTableSchema(input [][]string)TableSchema{
 		attributeType := attribute[1]
 		newSchema.Attributes[name] = AtomicAttribute{Type:attributeType}
 	}
+	newSchema.TableName = tableName
 	return newSchema
 }
 
