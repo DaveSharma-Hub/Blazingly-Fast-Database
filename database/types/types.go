@@ -9,13 +9,29 @@ type AtomicItem struct{
 	Type string `json:"type"`
 }
 
-// type databaseOutput struct{
-// 	Output string `json:"output"`
-// 	Data string `json:"data"`
-// }
+type AtomicAttribute struct{
+	Type string `json:"type"`
+}
 
 type Payload struct{
     Item map[string] AtomicItem
+}
+
+type TableSchema struct{
+	Attributes map[string] AtomicAttribute
+	TableName string
+}
+
+func CreateTableSchema(input [][]string)TableSchema{
+	var newSchema TableSchema
+	newSchema.Attributes = make(map[string] AtomicAttribute)
+	for i:=0; i<len(input); i++ {
+		attribute := input[i]
+		name := attribute[0]
+		attributeType := attribute[1]
+		newSchema.Attributes[name] = AtomicAttribute{Type:attributeType}
+	}
+	return newSchema
 }
 
 func CreatePayload(input [][]string)Payload{

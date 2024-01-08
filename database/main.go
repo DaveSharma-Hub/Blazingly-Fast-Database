@@ -4,7 +4,7 @@ import (
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/commandArgs"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/server"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/cache"
-	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore"
 	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/dataCacheClient"
 	"os"
@@ -61,11 +61,10 @@ func main(){
 
     arguments := commandArgs.ParseInput(inputArguments)
 
-	// perisistentStore := persistentStoreClient.InitPersistentStoreClient();
-	// pass into InitCacheClient below
+	perisistentStore := persistentStoreClient.InitPersistentStoreClient();
 	dataQueryInMemoryCacheClient := cacheClient.InitCacheClient(arguments.CacheMaxSize);
 
-	dataAndCacheClient := dataCacheClient.CreateFunctionMapWrapper(dataQueryInMemoryCacheClient)
+	dataAndCacheClient := dataCacheClient.CreateFunctionMapWrapper(dataQueryInMemoryCacheClient, perisistentStore)
 
 	// cacheClient.ExecuteOperation(dataQueryInMemoryCacheClient,"1", perisitentStoreClient.GetData)
 

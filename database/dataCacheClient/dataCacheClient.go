@@ -7,17 +7,17 @@ import (
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/cache/lruCache"
 )
 
-type DataCacheExecutionType func(string, globalTypes.Payload)globalTypes.Payload
+type DataCacheExecutionType func(string,string, globalTypes.Payload)globalTypes.Payload
 
 type DataCacheClientReturnType map[string] DataCacheExecutionType
 
 
-func CreateFunctionMapWrapper(dataQueryInMemoryCacheClient *lruCache.LRUCache)DataCacheClientReturnType{
+func CreateFunctionMapWrapper(dataQueryInMemoryCacheClient *lruCache.LRUCache, dataStore *persistentStoreClient.TableEncapsulation)DataCacheClientReturnType{
 	functionMap := make(map[string] DataCacheExecutionType)
 
-	functionMap["Test"] = func(key string, value globalTypes.Payload)globalTypes.Payload{
+	functionMap["Test"] = func(tableName string, key string, value globalTypes.Payload)globalTypes.Payload{
 		return cacheClient.ExecuteOperationGetItem(dataQueryInMemoryCacheClient,key, func(storeKey string)globalTypes.Payload{
-			return persistentStoreClient.GetData(storeKey)
+			return persistentStoreClient.GetData(tableName, storeKey, dataStore)
 		})
 	}
 

@@ -25,7 +25,7 @@ var tmpData = []databaseOutput{
 }
 
 func testGet(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
-	var returnData globalTypes.Payload = executeFn("1", globalTypes.CreateEmptyPayload())
+	var returnData globalTypes.Payload = executeFn("Users", "First", globalTypes.CreateEmptyPayload())
 	jsonResult, err := json.Marshal(returnData.Item)
 	if err!=nil {
 		fmt.Println("ERROR")
