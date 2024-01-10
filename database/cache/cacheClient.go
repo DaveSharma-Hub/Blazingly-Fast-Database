@@ -14,6 +14,10 @@ func ExecuteOperationGetItem(inMemoryLRUCache *lruCache.LRUCache, key string, fn
 	return lruCache.GetItem(inMemoryLRUCache, key, fnCallback);
 }
 
+func ExecuteOperationSetItem(inMemoryLRUCache *lruCache.LRUCache, key string, dataPayload globalTypes.Payload){
+	lruCache.SetItem(inMemoryLRUCache, key, dataPayload);
+}
+
 func PrintLL(inMemoryLRUCache *lruCache.LRUCache){
 	lruCache.PrintItems(inMemoryLRUCache)
 }	

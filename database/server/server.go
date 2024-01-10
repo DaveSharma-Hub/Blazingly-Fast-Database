@@ -19,6 +19,12 @@ type PostQueryInputType struct{
 	PartitionKey string `json:"partition_key" binding:"required"`
 }
 
+type PostSetDataInputType struct{
+	TableName string `json:"table_name" binding:"required"`
+	PartitionKey string `json:"partition_key" binding:"required"`
+	DataPayload globalTypes.Payload `json:"payload" binding:"required"`
+}
+
 // type databaseOutput struct{
 // 	Output string `json:"output"`
 // 	Data string `json:"data"`
@@ -31,7 +37,7 @@ type PostQueryInputType struct{
 
 func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
 	var inputData PostQueryInputType
-
+	
 	if err:= c.ShouldBindJSON(&inputData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -42,7 +48,23 @@ func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheEx
 	if err!=nil {
 		fmt.Println("ERROR")
 	}
-	fmt.Println(returnData)
+	c.JSON(http.StatusOK, string(jsonResult))
+}
+
+func postSetDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
+	var inputData PostSetDataInputType
+	// inputData.DataPayload = make(map[string] globalTypes.AtomicItem)
+	
+	if err:= c.ShouldBindJSON(&inputData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	executeFn(inputData.TableName, inputData.PartitionKey, inputData.DataPayload)
+	jsonResult, err := json.Marshal(inputData)
+	if err!=nil {
+		fmt.Println("ERROR")
+	}
 	c.JSON(http.StatusOK, string(jsonResult))
 }
 
@@ -58,7 +80,7 @@ func InitServer(client dataCacheClient.DataCacheClientReturnType)*gin.Engine{
 	// router.POST("/test",testPost)
 	router.POST("/queryData", CreateFunctionWrapper(postQueryDatabaseData, client, "QueryData"))
 	// router.POST("/createTable", postCreateTable)
-	// router.POST("/addData", postAddData)
+	router.POST("/addData", CreateFunctionWrapper(postSetDatabaseData, client, "SetData"))
 	// router.POST("/removeData", postRemoveData)
 	
 	return router

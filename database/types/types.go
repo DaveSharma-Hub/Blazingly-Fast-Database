@@ -14,7 +14,7 @@ type AtomicAttribute struct{
 }
 
 type Payload struct{
-    Item map[string] AtomicItem
+    Item map[string] AtomicItem `json:"item"`
 }
 
 type TableSchema struct{

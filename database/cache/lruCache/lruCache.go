@@ -126,6 +126,18 @@ func GetItem(cache *LRUCache,key string, fnCallback PersistedItemConversion)glob
     }
 }
 
+func SetItem(cache *LRUCache, key string, value globalTypes.Payload){
+    if LLSize(cache.list) == cache.maxSize {
+        // remove head
+        var removedItem *Node = removeLinkedListHead(cache.list);
+        delete(cache.lruMap,removedItem.key)
+    }
+    //tmp item, would get from perisitent store
+    newItem := initNode(key, value)
+    cache.lruMap[key] = newItem
+    pushToLinkedList(cache.list,newItem)
+}
+
 // list *LinkedList
 //     lruMap map[string]*Node
 

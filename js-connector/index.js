@@ -20,22 +20,29 @@ class BFDB {
     async addDataToTable(tableName, data){
         try{
             const endpoint = `${this.databaseEndpoint}/addData`;
-            await axios.post(endpoint,{
-                tableName:tableName,
-                tableData:data
+            const result = await axios.post(endpoint,{
+                table_name:tableName,
+                partition_key:partitionKey,
+                payload:{
+                    item:{
+                        
+                    }
+                }
             });
+            console.log(result.data);
         }catch(e){
             console.log(e);
         }
     }
 
-    async getDataFromTable(tableName,dataId){
+    async getDataFromTable(tableName,partitionKey){
         try{
             const endpoint = `${this.databaseEndpoint}/queryData`;
-            await axios.post(endpoint,{
-                tableName:tableName,
-                dataId:dataId
+            const result = await axios.post(endpoint,{
+                table_name:tableName,
+                partition_key:partitionKey
             });
+            return unmarshall(JSON.parse(result.data));
         }catch(e){
             console.log(e);
         }
