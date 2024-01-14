@@ -11,11 +11,15 @@ func InitCacheClient(maxCachedItems int64)*lruCache.LRUCache{
 }
 
 func ExecuteOperationGetItem(inMemoryLRUCache *lruCache.LRUCache, key string, fnCallback lruCache.PersistedItemConversion)globalTypes.Payload{
-	return lruCache.GetItem(inMemoryLRUCache, key, fnCallback);
+	return lruCache.GetItem(inMemoryLRUCache, key, fnCallback)
 }
 
 func ExecuteOperationSetItem(inMemoryLRUCache *lruCache.LRUCache, key string, dataPayload globalTypes.Payload){
-	lruCache.SetItem(inMemoryLRUCache, key, dataPayload);
+	lruCache.SetItem(inMemoryLRUCache, key, dataPayload)
+}
+
+func ExecuteOperationUpdateItem(inMemoryLRUCache *lruCache.LRUCache, key string, dataPayload globalTypes.Payload){
+	lruCache.UpdateItem(inMemoryLRUCache, key, dataPayload)
 }
 
 func PrintLL(inMemoryLRUCache *lruCache.LRUCache){

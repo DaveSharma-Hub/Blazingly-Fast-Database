@@ -138,6 +138,25 @@ func SetItem(cache *LRUCache, key string, value globalTypes.Payload){
     pushToLinkedList(cache.list,newItem)
 }
 
+func UpdateItem(cache *LRUCache, key string, value globalTypes.Payload){
+    var item *Node = cache.lruMap[key]
+    newItem := initNode(key, value)
+    if item!=nil {
+        // remove from position
+        removeItemFromLinkedList(cache.list, item)
+        pushToLinkedList(cache.list,newItem)
+    }else {
+        if LLSize(cache.list) == cache.maxSize {
+            // remove head
+            var removedItem *Node = removeLinkedListHead(cache.list);
+            delete(cache.lruMap,removedItem.key)
+        }
+        //tmp item, would get from perisitent store
+        cache.lruMap[key] = newItem
+        pushToLinkedList(cache.list,newItem)
+    }
+}
+
 // list *LinkedList
 //     lruMap map[string]*Node
 

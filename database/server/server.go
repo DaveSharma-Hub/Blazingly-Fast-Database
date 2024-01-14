@@ -60,6 +60,25 @@ func postSetDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExec
 	}
 	c.JSON(http.StatusOK, string(jsonResult))
 }
+func postUpdateDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
+	var inputData utils.PostSetDataInputType
+	// inputData.DataPayload = make(map[string] globalTypes.AtomicItem)
+	
+	if err:= c.ShouldBindJSON(&inputData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	newPayload := utils.GetPayloadFromPostSetDataInput(inputData)
+	executeFn(inputData.TableName, inputData.PartitionKey, newPayload)
+
+	jsonResult, err := json.Marshal(inputData)
+
+	if err!=nil {
+		fmt.Println("ERROR")
+	}
+	c.JSON(http.StatusOK, string(jsonResult))
+}
 
 func CreateFunctionWrapper(inputFn utils.FunctionWrapperType, client dataCacheClient.DataCacheClientReturnType, functionName string)gin.HandlerFunc{
     return func (c *gin.Context) {
@@ -74,6 +93,7 @@ func InitServer(client dataCacheClient.DataCacheClientReturnType)*gin.Engine{
 	router.POST("/queryData", CreateFunctionWrapper(postQueryDatabaseData, client, "QueryData"))
 	// router.POST("/createTable", postCreateTable)
 	router.POST("/addData", CreateFunctionWrapper(postSetDatabaseData, client, "SetData"))
+	router.POST("/updateData", CreateFunctionWrapper(postUpdateDatabaseData, client, "UpdateData"))
 	// router.POST("/removeData", postRemoveData)
 	
 	return router

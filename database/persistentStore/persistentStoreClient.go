@@ -97,12 +97,8 @@ func SetData(tableName string, key string, value globalTypes.Payload, allTableDa
 	if ok {
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
-				_, ok := allTableData.TableInformation[tableName].TableData.Data[key]
-				if ok {
-					// do nothing if it already exists	
-				} else {
+				if allTableData.TableInformation[tableName].TableData.Data[key] == nil {
 					allTableData.TableInformation[tableName].TableData.Data[key] = &value
-					
 				}
 			}
 		}
@@ -114,10 +110,14 @@ func UpdateData(tableName string, key string, value globalTypes.Payload, allTabl
 	if ok {
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
-				_,ok := allTableData.TableInformation[tableName].TableData.Data[key]
-				if ok {
-					// allTableData.TableInformation[tableName].TableData.Data[key] = &value
-					// update data 
+				if allTableData.TableInformation[tableName].TableData.Data[key] != nil {
+					if allTableData.TableInformation[tableName].TableData.Data[key].Item != nil {
+						for newKey := range value.Item {
+							allTableData.TableInformation[tableName].TableData.Data[key].Item[newKey] = value.Item[newKey]
+						}
+					}else{
+						allTableData.TableInformation[tableName].TableData.Data[key] = &value
+					}
 				}
 			}
 		}

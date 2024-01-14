@@ -30,6 +30,19 @@ class BFDB {
             console.log(e);
         }
     }
+    async updateDataToTable(tableName, partitionKey, payload){
+        try{
+            const endpoint = `${this.databaseEndpoint}/updateData`;
+            const result = await axios.post(endpoint,{
+                table_name:tableName,
+                partition_key:partitionKey,
+                payload: payload
+            });
+            console.log(result.data);
+        }catch(e){
+            console.log(e);
+        }
+    }
 
     async getDataFromTable(tableName,partitionKey){
         try{
