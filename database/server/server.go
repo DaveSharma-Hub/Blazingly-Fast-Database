@@ -7,23 +7,13 @@ import (
 	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/cache"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/dataCacheClient"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/server/utils"
 	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore"
 	"fmt"
 	"encoding/json"
 )
 
-type FunctionWrapperType func(*gin.Context, dataCacheClient.DataCacheExecutionType)
 
-type PostQueryInputType struct{
-	TableName string `json:"table_name" binding:"required"`
-	PartitionKey string `json:"partition_key" binding:"required"`
-}
-
-type PostSetDataInputType struct{
-	TableName string `json:"table_name" binding:"required"`
-	PartitionKey string `json:"partition_key" binding:"required"`
-	DataPayload globalTypes.Payload `json:"payload" binding:"required"`
-}
 
 // type databaseOutput struct{
 // 	Output string `json:"output"`
@@ -36,7 +26,7 @@ type PostSetDataInputType struct{
 // }
 
 func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
-	var inputData PostQueryInputType
+	var inputData utils.PostQueryInputType
 	
 	if err:= c.ShouldBindJSON(&inputData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -52,7 +42,7 @@ func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheEx
 }
 
 func postSetDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
-	var inputData PostSetDataInputType
+	var inputData utils.PostSetDataInputType
 	// inputData.DataPayload = make(map[string] globalTypes.AtomicItem)
 	
 	if err:= c.ShouldBindJSON(&inputData); err != nil {
@@ -60,15 +50,18 @@ func postSetDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExec
 		return
 	}
 
-	executeFn(inputData.TableName, inputData.PartitionKey, inputData.DataPayload)
+	newPayload := utils.GetPayloadFromPostSetDataInput(inputData)
+	executeFn(inputData.TableName, inputData.PartitionKey, newPayload)
+
 	jsonResult, err := json.Marshal(inputData)
+
 	if err!=nil {
 		fmt.Println("ERROR")
 	}
 	c.JSON(http.StatusOK, string(jsonResult))
 }
 
-func CreateFunctionWrapper(inputFn FunctionWrapperType, client dataCacheClient.DataCacheClientReturnType, functionName string)gin.HandlerFunc{
+func CreateFunctionWrapper(inputFn utils.FunctionWrapperType, client dataCacheClient.DataCacheClientReturnType, functionName string)gin.HandlerFunc{
     return func (c *gin.Context) {
         inputFn(c, client[functionName])
     }

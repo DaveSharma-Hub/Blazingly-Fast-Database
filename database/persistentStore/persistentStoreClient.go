@@ -97,11 +97,33 @@ func SetData(tableName string, key string, value globalTypes.Payload, allTableDa
 	if ok {
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
-				allTableData.TableInformation[tableName].TableData.Data[key] = &value
+				_, ok := allTableData.TableInformation[tableName].TableData.Data[key]
+				if ok {
+					// do nothing if it already exists	
+				} else {
+					allTableData.TableInformation[tableName].TableData.Data[key] = &value
+					
+				}
 			}
 		}
 	}
 }
+
+func UpdateData(tableName string, key string, value globalTypes.Payload, allTableData *TableEncapsulation){
+	_, ok := allTableData.TableInformation[tableName]
+	if ok {
+		if allTableData.TableInformation[tableName].TableData != nil {
+			if allTableData.TableInformation[tableName].TableData.Data != nil {
+				_,ok := allTableData.TableInformation[tableName].TableData.Data[key]
+				if ok {
+					// allTableData.TableInformation[tableName].TableData.Data[key] = &value
+					// update data 
+				}
+			}
+		}
+	}
+}
+
 
 func CreateTable(tableName string, tableSchema[][]string, allTableData *TableEncapsulation){
 	var schema globalTypes.TableSchema = globalTypes.CreateTableSchema(tableName, tableSchema)

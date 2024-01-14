@@ -17,17 +17,13 @@ class BFDB {
         }
     }
 
-    async addDataToTable(tableName, data){
+    async addDataToTable(tableName, partitionKey, payload){
         try{
             const endpoint = `${this.databaseEndpoint}/addData`;
             const result = await axios.post(endpoint,{
                 table_name:tableName,
                 partition_key:partitionKey,
-                payload:{
-                    item:{
-                        
-                    }
-                }
+                payload: payload
             });
             console.log(result.data);
         }catch(e){
