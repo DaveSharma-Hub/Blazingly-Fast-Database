@@ -1,7 +1,15 @@
 package globalTypes
 
+import (
+	"strings"
+	"fmt"
+)
+
+const LOCATION = "./rawData/"
+
 type CommandLineArguments struct {
 	CacheMaxSize int64
+	IsTesting bool
 }
  
 type AtomicItem struct{
@@ -55,3 +63,40 @@ func CreateEmptyPayload()Payload{
 	newItem.Item = make(map[string] AtomicItem)
 	return newItem
 }
+
+func ConvertPayload(payload *Payload)string{
+	var finalStr strings.Builder
+	fmt.Fprintf(&finalStr, "{")
+	
+	for key := range(payload.Item){
+		value := payload.Item[key]
+		line := key + ":{" + value.Type + ":" + value.Value + "},"
+		fmt.Fprintf(&finalStr, "%s", line)
+	}
+	fmt.Fprintf(&finalStr, "}")
+	return finalStr.String()
+}
+//ISSUE: What if comma, or {} are in value then how to handle parsing
+
+func ConvetBackToPayload(payload string)*Payload{
+    input := [][]string{}
+
+	strippedPayload := payload[1:len(payload)-1]
+	splitPayload := strings.Split(strippedPayload, ",")
+
+	for index := range(splitPayload){
+	    keyValuePayload := splitPayload[index]
+		items := strings.Split(keyValuePayload, ":")
+		if len(items)==3{
+    		key := items[0]
+    		valueType := items[1][1:]
+    		value := items[2][0:len(items[2])-1]
+    		tmp := []string{key,value,valueType}
+    		input = append(input, tmp)
+		}
+	}
+
+	newPayload := CreatePayload(input)
+	return &newPayload
+}
+//ISSUE: What if comma, or {} are in value then how to handle parsing

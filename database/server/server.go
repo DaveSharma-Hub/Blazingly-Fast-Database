@@ -88,7 +88,10 @@ func CreateFunctionWrapper(inputFn utils.FunctionWrapperType, client dataCacheCl
 }
 
 func InitServer(client dataCacheClient.DataCacheClientReturnType)*gin.Engine{
+	// gin.DisableConsoleColor()
     router := gin.Default()
+	// f, _ := os.Create("gin.log")
+    // gin.DefaultWriter = io.MultiWriter(f)
 	//router.GET("/test",CreateFunctionWrapper(testGet,client, "QueryData"))
 	// router.POST("/test",testPost)
 	router.POST("/queryData", CreateFunctionWrapper(postQueryDatabaseData, client, "QueryData"))

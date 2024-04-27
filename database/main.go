@@ -7,6 +7,7 @@ import (
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore"
 	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/dataCacheClient"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/testing"
 	"os"
 ) 
 
@@ -61,8 +62,14 @@ func main(){
 
     arguments := commandArgs.ParseInput(inputArguments)
 
+	if arguments.IsTesting {
+		testing.MainTest()
+		return
+	}
+
 	perisistentStore := persistentStoreClient.InitPersistentStoreClient();
 	dataQueryInMemoryCacheClient := cacheClient.InitCacheClient(arguments.CacheMaxSize);
+
 
 	dataAndCacheClient := dataCacheClient.CreateFunctionMapWrapper(dataQueryInMemoryCacheClient, perisistentStore)
 

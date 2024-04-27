@@ -7,9 +7,11 @@ import (
     "os"
 	"io"
 	"bytes"
+	"strconv"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore/binaryTree"
 )
+
 
 func check(e error, message string) {
     if e != nil {
@@ -19,8 +21,8 @@ func check(e error, message string) {
 }
 
 func CreateFile(fileName string, location string){
-	finalLocation := location+"/"+fileName
-	_, err := os.Create(finalLocation)
+	finalFileLocation := location + fileName
+	_, err := os.Create(finalFileLocation)
 	check(err, "Error creating file")
 }
 
@@ -30,7 +32,7 @@ func GetLineNumber(filename string, key string)int{
 }
 
 func lineCounter(r io.Reader) (int, error) {
-    buf := make([]byte, 32*1024)
+    buf := make([]byte, 32*1024) // read 32K Bytes at a time and find '\n' separator
     count := 0
     lineSep := []byte{'\n'}
 
@@ -46,17 +48,19 @@ func lineCounter(r io.Reader) (int, error) {
             return count, err
         }
     }
+	return count, nil
 }
 
-func SetLineNumber(filename string, key string)int{
-	f, err := os.OpenFile(filename, os.O_RDONLY|os.O_CREATE, 0600)
+func SetLineNumber(file io.Reader, fileNameMetaData string,key string)int{
+	lineNumber, _ := lineCounter(file)
+
+	f, err := os.OpenFile(fileNameMetaData, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
 	}
 	defer f.Close()
-	lineNumber, _ := lineCounter(f)
 
-	finalString := key +":"+ string(lineNumber)
+	finalString := key +":" + strconv.Itoa(lineNumber)
 	_, err = f.WriteString(finalString)
 	check(err, "Faied to write to file")
 
@@ -64,24 +68,26 @@ func SetLineNumber(filename string, key string)int{
 }
 
 func SetPersistedDataFile(tableName string, key string, value *globalTypes.Payload)*binaryTree.DataMemoryLocation{
-	var fileNameMetaData string = tableName + "_metaData.txt"
-	var fileName string  = tableName + ".txt"
+	var fileNameMetaData string = globalTypes.LOCATION + tableName + "_metaData.txt"
+	var fileName string  = globalTypes.LOCATION + tableName + ".txt"
 
-	var lineNumber int = SetLineNumber(fileNameMetaData, key)
-
-	f, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY| os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
 	}
+	var lineNumber int = SetLineNumber(file, fileNameMetaData, key)
 
-	defer f.Close()
+	defer file.Close()
 	//	persist data in fileName, need to convert payload to string then convert back when getting
+	var stringifiedPayload string = globalTypes.ConvertPayload(value)
+	_,err = file.WriteString(stringifiedPayload)
+	check(err, "Fail to write to file")
 
 	return &binaryTree.DataMemoryLocation{LineNumber:lineNumber}
 }
 
 func AppendFileTableMeta(fileName string, location string, schema globalTypes.TableSchema) {
-	finalLocation := location+"/"+fileName
+	finalLocation := location + fileName
 	f, err := os.OpenFile(finalLocation, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
@@ -107,8 +113,8 @@ func AppendFileTableMeta(fileName string, location string, schema globalTypes.Ta
 	_, err = f.WriteString(tableFileNameString)
 	check(err, "Faied to write to file")
 
-	CreateFile(tableFileName,".")
-	CreateFile(tableFileNameMetaData,".")
+	CreateFile(tableFileName,globalTypes.LOCATION)
+	CreateFile(tableFileNameMetaData,globalTypes.LOCATION)
 
 	_, err = f.WriteString("\n")
 	check(err, "Faied to write to file")

@@ -18,7 +18,7 @@ func argumentValidation(input string)bool{
 }
 
 func ParseInput(arguments []string)globalTypes.CommandLineArguments{
-	commandLineArgs := globalTypes.CommandLineArguments{CacheMaxSize:10000}
+	commandLineArgs := globalTypes.CommandLineArguments{CacheMaxSize:10000, IsTesting:false}
 	for i := 0; i<len(arguments) ; i++ {
 		isValid := argumentValidation(arguments[i])
 		arg := strings.Split(arguments[i],"=")
@@ -34,6 +34,10 @@ func ParseInput(arguments []string)globalTypes.CommandLineArguments{
 				commandLineArgs.CacheMaxSize = size
 			}else{
 				panic(err)
+			}
+		case "--testing":
+			if argValue=="true"{
+				commandLineArgs.IsTesting = true
 			}
 		default:
 			// do nothing

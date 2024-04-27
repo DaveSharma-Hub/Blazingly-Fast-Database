@@ -70,8 +70,8 @@ func AddTable(schema globalTypes.TableSchema,info *TableEncapsulation){
 func tempStoreData()*TableEncapsulation{
 	var allTableData *TableEncapsulation = CreateTableEncapsulation()
 
-	// CreateTable("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}},allTableData)
-	// CreateTable("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}},allTableData)
+	CreateTable("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}},allTableData)
+	CreateTable("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}},allTableData)
 
 	// SetData("Users","First",globalTypes.CreatePayload([][]string{{"id","1","string"},{"name","John","string"},{"age","24","integer"},{"occupation","Engineer","string"}}),allTableData)
 	// SetData("Users","Second",globalTypes.CreatePayload([][]string{{"id","2","string"},{"name","Bob","string"},{"age","74","integer"},{"occupation","Plumber","string"}}),allTableData)
@@ -82,9 +82,9 @@ func tempStoreData()*TableEncapsulation{
 	schema := globalTypes.CreateTableSchema("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}})
 	schema2 := globalTypes.CreateTableSchema("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}})
 
-	persistedDataRetrieval.CreateFile("test.txt", ".")
-	persistedDataRetrieval.AppendFileTableMeta("test.txt",".",schema)
-	persistedDataRetrieval.AppendFileTableMeta("test.txt",".",schema2)
+	persistedDataRetrieval.CreateFile("test.txt", globalTypes.LOCATION)
+	persistedDataRetrieval.AppendFileTableMeta("test.txt",globalTypes.LOCATION,schema)
+	persistedDataRetrieval.AppendFileTableMeta("test.txt",globalTypes.LOCATION,schema2)
 	return allTableData
 }
 
