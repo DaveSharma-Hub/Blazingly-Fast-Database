@@ -2,8 +2,9 @@ package persistentStoreClient
 
 import (
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
-	// "github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/cache/binaryTree"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore/binaryTree"
 	// "time"
+	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore/dataRetrieval"
 	"fmt"
 )
 
@@ -11,10 +12,18 @@ type TableMetaDataType struct{
 	TableAttributes globalTypes.TableSchema
 }
 
+
+
+type DataReturnType struct{
+	Payload *globalTypes.Payload
+	DataLocation *binaryTree.DataMemoryLocation
+}
+
 // here is where you can optimize using binary tree's etc
 type TableDataType struct{
-	Data map[string] *globalTypes.Payload	// Array of payload that matches schema
+	Data map[string] *DataReturnType	// Array of payload that matches schema
 }
+
 
 // type TableDataType struct{
 // 	Items map[string] *ItemTableDataType
@@ -36,7 +45,7 @@ func CreateTableMetaData(schema globalTypes.TableSchema)*TableMetaDataType{
 }
 
 func CreateTableData()*TableDataType{
-	tableData := TableDataType{Data:make(map[string] *globalTypes.Payload)}
+	tableData := TableDataType{Data:make(map[string] *DataReturnType)}
 	return &tableData
 }
 
@@ -61,13 +70,21 @@ func AddTable(schema globalTypes.TableSchema,info *TableEncapsulation){
 func tempStoreData()*TableEncapsulation{
 	var allTableData *TableEncapsulation = CreateTableEncapsulation()
 
-	CreateTable("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}},allTableData)
-	CreateTable("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}},allTableData)
+	// CreateTable("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}},allTableData)
+	// CreateTable("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}},allTableData)
 
-	SetData("Users","First",globalTypes.CreatePayload([][]string{{"id","1","string"},{"name","John","string"},{"age","24","integer"},{"occupation","Engineer","string"}}),allTableData)
-	SetData("Users","Second",globalTypes.CreatePayload([][]string{{"id","2","string"},{"name","Bob","string"},{"age","74","integer"},{"occupation","Plumber","string"}}),allTableData)
-	SetData("Users","Third",globalTypes.CreatePayload([][]string{{"id","3","string"},{"name","Kelly","string"},{"age","44","integer"},{"occupation","Financy","string"}}),allTableData)
+	// SetData("Users","First",globalTypes.CreatePayload([][]string{{"id","1","string"},{"name","John","string"},{"age","24","integer"},{"occupation","Engineer","string"}}),allTableData)
+	// SetData("Users","Second",globalTypes.CreatePayload([][]string{{"id","2","string"},{"name","Bob","string"},{"age","74","integer"},{"occupation","Plumber","string"}}),allTableData)
+	// SetData("Users","Third",globalTypes.CreatePayload([][]string{{"id","3","string"},{"name","Kelly","string"},{"age","44","integer"},{"occupation","Financy","string"}}),allTableData)
 
+	
+	
+	schema := globalTypes.CreateTableSchema("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}})
+	schema2 := globalTypes.CreateTableSchema("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}})
+
+	persistedDataRetrieval.CreateFile("test.txt", ".")
+	persistedDataRetrieval.AppendFileTableMeta("test.txt",".",schema)
+	persistedDataRetrieval.AppendFileTableMeta("test.txt",".",schema2)
 	return allTableData
 }
 
@@ -84,7 +101,7 @@ func GetData(tableName string, key string, allTableData *TableEncapsulation) glo
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				_, okAgain := allTableData.TableInformation[tableName].TableData.Data[key]
 				if okAgain {
-					return *allTableData.TableInformation[tableName].TableData.Data[key]
+					return *allTableData.TableInformation[tableName].TableData.Data[key].Payload
 				}
 			}
 		}
@@ -98,7 +115,8 @@ func SetData(tableName string, key string, value globalTypes.Payload, allTableDa
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				if allTableData.TableInformation[tableName].TableData.Data[key] == nil {
-					allTableData.TableInformation[tableName].TableData.Data[key] = &value
+					var dataMemLocation *binaryTree.DataMemoryLocation = persistedDataRetrieval.SetPersistedDataFile(tableName, key, &value)
+					allTableData.TableInformation[tableName].TableData.Data[key] = &DataReturnType{Payload:&value,DataLocation:dataMemLocation}
 				}
 			}
 		}
@@ -111,12 +129,12 @@ func UpdateData(tableName string, key string, value globalTypes.Payload, allTabl
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				if allTableData.TableInformation[tableName].TableData.Data[key] != nil {
-					if allTableData.TableInformation[tableName].TableData.Data[key].Item != nil {
+					if allTableData.TableInformation[tableName].TableData.Data[key].Payload.Item != nil {
 						for newKey := range value.Item {
-							allTableData.TableInformation[tableName].TableData.Data[key].Item[newKey] = value.Item[newKey]
+							allTableData.TableInformation[tableName].TableData.Data[key].Payload.Item[newKey] = value.Item[newKey]
 						}
 					}else{
-						allTableData.TableInformation[tableName].TableData.Data[key] = &value
+						allTableData.TableInformation[tableName].TableData.Data[key].Payload = &value
 					}
 				}
 			}

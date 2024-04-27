@@ -23,7 +23,7 @@ func CreateFunctionMapWrapper(dataQueryInMemoryCacheClient *lruCache.LRUCache, d
 	functionMap["SetData"] = func(tableName string, key string, value globalTypes.Payload)globalTypes.Payload{
 		persistentStoreClient.SetData(tableName, key, value, dataStore)
 		cacheClient.ExecuteOperationSetItem(dataQueryInMemoryCacheClient,key, value)
-		//since returning globalType.Payload <- can find a better way later on
+		//since returning empty globalType.Payload <- can find a better way later on
 		return globalTypes.CreateEmptyPayload()
 	}
 

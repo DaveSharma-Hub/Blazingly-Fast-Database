@@ -2,9 +2,17 @@
 
 Custom non-relational NoSQL database created in Golang.
 
+Build
+
+```go
+go build .
+```
+
 Execute
 
-```./database --mc=<MAX_CACHED_ITEMS>```
+```go 
+./database --mc=<MAX_CACHED_ITEMS>
+```
 
 Arguments
 

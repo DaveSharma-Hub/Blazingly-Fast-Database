@@ -82,6 +82,7 @@ func postUpdateDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheE
 
 func CreateFunctionWrapper(inputFn utils.FunctionWrapperType, client dataCacheClient.DataCacheClientReturnType, functionName string)gin.HandlerFunc{
     return func (c *gin.Context) {
+		// contextCopy := c.Copy()
         inputFn(c, client[functionName])
     }
 }
