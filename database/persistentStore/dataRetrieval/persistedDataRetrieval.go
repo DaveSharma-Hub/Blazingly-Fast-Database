@@ -4,10 +4,13 @@ import (
 	// "bufio"
     "fmt"
     // "log"
+	"bufio"
     "os"
 	"io"
 	"bytes"
 	"strconv"
+	"errors"
+	"strings"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/types"
 	"github.com/DaveSharma-Hub/Blazingly-Fast-Database/database/persistentStore/binaryTree"
 )
@@ -27,11 +30,49 @@ func CreateFile(fileName string, location string){
 }
 
 
-func GetLineNumber(filename string, key string)int{
-	return 0
+func GetLineNumber(filename string, key string)(int,error){
+	f,err := os.OpenFile(filename, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
+	if err != nil {
+		check(err,"Error opening file for append")
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	lineNumber := -1
+	for scanner.Scan(){
+		substring := key+":"
+		if strings.Contains(scanner.Text(),substring){
+			item := strings.Split(scanner.Text(), ":")
+			lineNumber,_ := strconv.Atoi(item[1])
+			return lineNumber,nil
+		}
+	}
+	return lineNumber, errors.New("NOT_FOUND")
 }
 
-func lineCounter(r io.Reader) (int, error) {
+func GetPayloadByLineNumber(fileName string, lineNumber int)(string,error){
+	f,err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
+	if err != nil {
+		check(err,"Error opening file for append")
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	lineCount := 0
+	for scanner.Scan(){
+		if lineCount == lineNumber{
+			return scanner.Text(),nil
+		}
+		lineCount++
+	}
+	return "{}", errors.New("NOT_FOUND")
+}
+
+func lineCounter(fileName string) (int, error) {
+	r, err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
+	if err != nil {
+		check(err,"Error opening file for append")
+	}
     buf := make([]byte, 32*1024) // read 32K Bytes at a time and find '\n' separator
     count := 0
     lineSep := []byte{'\n'}
@@ -39,7 +80,7 @@ func lineCounter(r io.Reader) (int, error) {
     for {
         c, err := r.Read(buf)
         count += bytes.Count(buf[:c], lineSep)
-
+		fmt.Println(string(buf[:c]))
         switch {
         case err == io.EOF:
             return count, nil
@@ -51,9 +92,9 @@ func lineCounter(r io.Reader) (int, error) {
 	return count, nil
 }
 
-func SetLineNumber(file io.Reader, fileNameMetaData string,key string)int{
-	lineNumber, _ := lineCounter(file)
-
+func SetLineNumber(fileName string, fileNameMetaData string,key string)int{
+	lineNumber, _ := lineCounter(fileName)
+	fmt.Println(lineNumber)
 	f, err := os.OpenFile(fileNameMetaData, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
@@ -63,6 +104,9 @@ func SetLineNumber(file io.Reader, fileNameMetaData string,key string)int{
 	finalString := key +":" + strconv.Itoa(lineNumber)
 	_, err = f.WriteString(finalString)
 	check(err, "Faied to write to file")
+	
+	_, err = f.WriteString("\n")
+	check(err, "Faied to write to file")
 
 	return lineNumber
 }
@@ -71,16 +115,19 @@ func SetPersistedDataFile(tableName string, key string, value *globalTypes.Paylo
 	var fileNameMetaData string = globalTypes.LOCATION + tableName + "_metaData.txt"
 	var fileName string  = globalTypes.LOCATION + tableName + ".txt"
 
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY| os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
 	}
-	var lineNumber int = SetLineNumber(file, fileNameMetaData, key)
+	var lineNumber int = SetLineNumber(fileName, fileNameMetaData, key)
 
 	defer file.Close()
 	//	persist data in fileName, need to convert payload to string then convert back when getting
 	var stringifiedPayload string = globalTypes.ConvertPayload(value)
 	_,err = file.WriteString(stringifiedPayload)
+	check(err, "Fail to write to file")
+	
+	_,err = file.WriteString("\n")
 	check(err, "Fail to write to file")
 
 	return &binaryTree.DataMemoryLocation{LineNumber:lineNumber}
@@ -123,4 +170,24 @@ func AppendFileTableMeta(fileName string, location string, schema globalTypes.Ta
 	// check(err, "Error closing file")
 }
 
+
+func GetPersistedDataFile(tableName string, key string)*globalTypes.Payload{
+	fileName := globalTypes.LOCATION + tableName + ".txt"
+	fileNameMetaData := globalTypes.LOCATION + tableName + "_metaData.txt"
+
+	lineNumber, err := GetLineNumber(fileNameMetaData, key)
+	if err != nil{
+		payload := globalTypes.CreateEmptyPayload()
+		return &payload
+		// ISSUE: Need to fix to return nil instead or a payload that indicates it doesnt exist
+	}
+
+	stringifiedPayload, err := GetPayloadByLineNumber(fileName, lineNumber)
+	if err != nil{
+		payload := globalTypes.CreateEmptyPayload()
+		return &payload
+		// ISSUE: Need to fix to return nil instead or a payload that indicates it doesnt exist
+	}
+	return globalTypes.ConvetBackToPayload(stringifiedPayload)
+}
 

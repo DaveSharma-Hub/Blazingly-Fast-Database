@@ -101,7 +101,8 @@ func GetData(tableName string, key string, allTableData *TableEncapsulation) glo
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				_, okAgain := allTableData.TableInformation[tableName].TableData.Data[key]
 				if okAgain {
-					return *allTableData.TableInformation[tableName].TableData.Data[key].Payload
+					// return *allTableData.TableInformation[tableName].TableData.Data[key].Payload
+					return *persistedDataRetrieval.GetPersistedDataFile(tableName, key)
 				}
 			}
 		}

@@ -1,0 +1,18 @@
+TODO:
+
+Schema check when parsing payload
+
+Extended json storage (multidimension)
+
+Read from byte instead of line <- Use Tensor-like structure for that
+
+Cache spacial locality along with temporal Cache
+
+Python, Java, Rust, PHP, C# connections
+
+gRPC added to server 
+
+Performance improvements (make it faster - less I/O reads/writes, go routines/channels)
+
+Horizontal scaling
+

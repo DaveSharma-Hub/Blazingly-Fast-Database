@@ -13,6 +13,7 @@ func MainTest(){
 	// persistedDataRetrieval.SetPersistedDataFile("Users", "1", &value)
 
 	persistentStoreClient.SetData("Users","1",value, perisistentStore)
+	persistentStoreClient.SetData("Users","2",value, perisistentStore)
 	// str:= globalTypes.ConvertPayload(&value)
 	// va := globalTypes.ConvetBackToPayload(str)
 	// fmt.Println(globalTypes.ConvertPayload(va))
