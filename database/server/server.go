@@ -33,7 +33,24 @@ func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheEx
 		return
 	}
 	
-	var returnData globalTypes.Payload = executeFn(inputData.TableName, inputData.PartitionKey, globalTypes.CreateEmptyPayload())
+	var returnData globalTypes.Payload = executeFn(inputData.TableName, inputData.PartitionKey, globalTypes.CreateEmptyPayload(), nil)
+	jsonResult, err := json.Marshal(returnData.Item)
+	if err!=nil {
+		fmt.Println("ERROR")
+	}
+	c.JSON(http.StatusOK, string(jsonResult))
+}
+
+func postScanDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
+	// TODO fix and pass in correct data from client
+	var inputData utils.PostQueryInputType
+	
+	if err:= c.ShouldBindJSON(&inputData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+	var returnData globalTypes.Payload = executeFn(inputData.TableName, inputData.PartitionKey, globalTypes.CreateEmptyPayload(), nil)
 	jsonResult, err := json.Marshal(returnData.Item)
 	if err!=nil {
 		fmt.Println("ERROR")
@@ -51,7 +68,7 @@ func postSetDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExec
 	}
 
 	newPayload := utils.GetPayloadFromPostSetDataInput(inputData)
-	executeFn(inputData.TableName, inputData.PartitionKey, newPayload)
+	executeFn(inputData.TableName, inputData.PartitionKey, newPayload, nil)
 
 	jsonResult, err := json.Marshal(inputData)
 
@@ -70,7 +87,7 @@ func postUpdateDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheE
 	}
 
 	newPayload := utils.GetPayloadFromPostSetDataInput(inputData)
-	executeFn(inputData.TableName, inputData.PartitionKey, newPayload)
+	executeFn(inputData.TableName, inputData.PartitionKey, newPayload, nil)
 
 	jsonResult, err := json.Marshal(inputData)
 
@@ -98,6 +115,7 @@ func InitServer(client dataCacheClient.DataCacheClientReturnType)*gin.Engine{
 	// router.POST("/createTable", postCreateTable)
 	router.POST("/addData", CreateFunctionWrapper(postSetDatabaseData, client, "SetData"))
 	router.POST("/updateData", CreateFunctionWrapper(postUpdateDatabaseData, client, "UpdateData"))
+	router.POST("/scanData", CreateFunctionWrapper(postScanDatabaseData, client, "QueryMatchingData"))
 	// router.POST("/removeData", postRemoveData)
 	
 	return router

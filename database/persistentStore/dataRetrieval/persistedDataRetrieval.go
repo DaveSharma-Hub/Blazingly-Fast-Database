@@ -30,7 +30,7 @@ func CreateFile(fileName string, location string){
 }
 
 
-func GetLineNumber(filename string, key string)(int,error){
+func GetLineNumber(filename string, key string)(int64,error){
 	f,err := os.OpenFile(filename, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
@@ -44,28 +44,30 @@ func GetLineNumber(filename string, key string)(int,error){
 		if strings.Contains(scanner.Text(),substring){
 			item := strings.Split(scanner.Text(), ":")
 			lineNumber,_ := strconv.Atoi(item[1])
-			return lineNumber,nil
+			return int64(lineNumber),nil
 		}
 	}
-	return lineNumber, errors.New("NOT_FOUND")
+	return int64(lineNumber), errors.New("NOT_FOUND")
 }
 
-func GetPayloadByLineNumber(fileName string, lineNumber int)(string,error){
+func GetPayloadByLineNumber(fileName string, lineNumber int64)(string,error){
 	f,err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
 	}
 	defer f.Close()
 
-	scanner := bufio.NewScanner(f)
-	lineCount := 0
-	for scanner.Scan(){
-		if lineCount == lineNumber{
-			return scanner.Text(),nil
-		}
-		lineCount++
+	_, err = f.Seek(lineNumber, 0)  // Set the current position for the fd
+	if err != nil { // error handler
+		return "{}",errors.New("NOT_FOUND")
 	}
-	return "{}", errors.New("NOT_FOUND")
+
+	reader := bufio.NewReader(f)
+	line, _, err := reader.ReadLine()
+	if err != nil {
+		return "{}", errors.New("NOT_FOUND")
+	}
+	return string(line), nil
 }
 
 func lineCounter(fileName string) (int, error) {
@@ -92,37 +94,86 @@ func lineCounter(fileName string) (int, error) {
 	return count, nil
 }
 
-func SetLineNumber(fileName string, fileNameMetaData string,key string)int{
-	lineNumber, _ := lineCounter(fileName)
-	fmt.Println(lineNumber)
+func byteCounter(fileName string)(int64,error){
+	r, err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
+	if err != nil {
+		check(err,"Error opening file for append")
+	}
+	fi, err := r.Stat()
+	if err != nil {
+		// Could not obtain stat, handle error
+		return 0, errors.New("Error finding byte size")
+	}
+	return fi.Size(),nil
+}
+
+func SetLineNumber(fileName string, fileNameMetaData string,key string)int64{
+	byteNumber, _ := byteCounter(fileName)
+	fmt.Println(byteNumber)
 	f, err := os.OpenFile(fileNameMetaData, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
 	}
 	defer f.Close()
 
-	finalString := key +":" + strconv.Itoa(lineNumber)
-	_, err = f.WriteString(finalString)
+	var finalString strings.Builder
+	fmt.Fprintf(&finalString,"%s:%d",key, byteNumber) 
+	_, err = f.WriteString(finalString.String())
 	check(err, "Faied to write to file")
 	
 	_, err = f.WriteString("\n")
 	check(err, "Faied to write to file")
 
-	return lineNumber
+	return byteNumber
 }
 
 func SetPersistedDataFile(tableName string, key string, value *globalTypes.Payload)*binaryTree.DataMemoryLocation{
 	var fileNameMetaData string = globalTypes.LOCATION + tableName + "_metaData.txt"
 	var fileName string  = globalTypes.LOCATION + tableName + ".txt"
 
+	var tablesDataFile string = globalTypes.LOCATION + "Tables.txt"
+	tableFile, err := os.OpenFile(tablesDataFile, os.O_RDONLY, 0600)
+	if err != nil {
+		check(err,"Error opening file for append")
+	}
+	defer tableFile.Close()
+	schema := [][]string{}
+
+	scanner := bufio.NewScanner(tableFile)
+	for scanner.Scan(){
+		item := strings.Split(scanner.Text(), ":")
+		if item[0] == tableName {
+			if len(item)==3{
+				keyTypeArr := strings.Split(item[1],")")
+				for index := range(keyTypeArr){
+					keyType := strings.Split(keyTypeArr[index], ",")
+					if (len(keyType[0])>0 && len(keyType[1])>0) {
+						key := keyType[0][1:len(keyType[0])]
+						valueType := keyType[1]
+						tmp := []string{key, valueType}
+						schema = append(schema, tmp)
+					}
+				}
+				break
+			}
+		}
+	}
+
+	isValid := globalTypes.VerifySchema(value, schema)
+	if !isValid {
+		// need to change what you return, can notify the user that incorrect schema
+		return nil
+	}
+
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		check(err,"Error opening file for append")
 	}
-	var lineNumber int = SetLineNumber(fileName, fileNameMetaData, key)
+	var byteNumber int64 = SetLineNumber(fileName, fileNameMetaData, key)
 
 	defer file.Close()
 	//	persist data in fileName, need to convert payload to string then convert back when getting
+
 	var stringifiedPayload string = globalTypes.ConvertPayload(value)
 	_,err = file.WriteString(stringifiedPayload)
 	check(err, "Fail to write to file")
@@ -130,7 +181,7 @@ func SetPersistedDataFile(tableName string, key string, value *globalTypes.Paylo
 	_,err = file.WriteString("\n")
 	check(err, "Fail to write to file")
 
-	return &binaryTree.DataMemoryLocation{LineNumber:lineNumber}
+	return &binaryTree.DataMemoryLocation{ByteOffset:byteNumber}
 }
 
 func AppendFileTableMeta(fileName string, location string, schema globalTypes.TableSchema) {
@@ -171,18 +222,21 @@ func AppendFileTableMeta(fileName string, location string, schema globalTypes.Ta
 }
 
 
-func GetPersistedDataFile(tableName string, key string)*globalTypes.Payload{
+func GetPersistedDataFile(tableName string, key string, byteOffest int64)*globalTypes.Payload{
 	fileName := globalTypes.LOCATION + tableName + ".txt"
 	fileNameMetaData := globalTypes.LOCATION + tableName + "_metaData.txt"
-
-	lineNumber, err := GetLineNumber(fileNameMetaData, key)
-	if err != nil{
-		payload := globalTypes.CreateEmptyPayload()
-		return &payload
-		// ISSUE: Need to fix to return nil instead or a payload that indicates it doesnt exist
+	byteNumber := byteOffest
+	if byteNumber == -1{
+		bytes, err := GetLineNumber(fileNameMetaData, key)
+		byteNumber = bytes
+		if err != nil{
+			payload := globalTypes.CreateEmptyPayload()
+			return &payload
+			// ISSUE: Need to fix to return nil instead or a payload that indicates it doesnt exist
+		}
 	}
 
-	stringifiedPayload, err := GetPayloadByLineNumber(fileName, lineNumber)
+	stringifiedPayload, err := GetPayloadByLineNumber(fileName, byteNumber)
 	if err != nil{
 		payload := globalTypes.CreateEmptyPayload()
 		return &payload
@@ -191,3 +245,32 @@ func GetPersistedDataFile(tableName string, key string)*globalTypes.Payload{
 	return globalTypes.ConvetBackToPayload(stringifiedPayload)
 }
 
+
+func GetAllDataMatchingPersistedDataFile(tableName string, innerKeyName string, innerKeyValue string,matchingOperator string)*globalTypes.Payload{
+	// this is where storage as a binary tree can help massively (maybe multi dimensional)
+	// leverage more storage for smaller time complexity
+
+	fileName := globalTypes.LOCATION + tableName + ".txt"
+	fd, err := os.OpenFile(fileName, os.O_RDONLY, 0600)
+	if err!=nil {
+		check(err,"Error opening file for append")
+	}
+
+	scanner := bufio.NewScanner(fd)
+	for scanner.Scan(){
+		text := scanner.Text()
+		switch matchingOperator{
+		case globalTypes.MATCHING_OPEQUAL:
+			var reconstructed strings.Builder
+			fmt.Fprintf(&reconstructed, "{%s:{%s:", innerKeyName, innerKeyValue)
+			if strings.Contains(text, reconstructed.String()) {
+				return globalTypes.ConvetBackToPayload(text)
+			}
+		default:
+			//do nothing
+		}
+	}
+
+	payload := globalTypes.CreateEmptyPayload()
+	return &payload
+}

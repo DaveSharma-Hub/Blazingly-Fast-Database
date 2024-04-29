@@ -4,7 +4,7 @@ package binaryTree
 // )
 
 type DataMemoryLocation struct{
-	LineNumber int // can change to specific byte later on
+	ByteOffset int64 // can change to specific byte later on
 }
 
 // type BTreeNode struct {

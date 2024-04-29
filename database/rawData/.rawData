@@ -1,12 +1,21 @@
 TODO:
 
-Schema check when parsing payload
+(DONE) Schema check when parsing payload
 
-Extended json storage (multidimension)
+Extended json storage (multidimension) 
+ - Need to convert to JSON format while transmitting instead of array
 
 Read from byte instead of line <- Use Tensor-like structure for that
+ - Created to use only Byte offset, (DONE) 
+ - TODO: Create a Data Structure to store byte offset (like strides)
+ - TODO: If change/update data how would byte offsets be altered? 
 
-Cache spacial locality along with temporal Cache
+Hashfunction for key to line number instead of just a map
+    - Right now using in memory map for key of a particular table
+    - Use a hash function if it is as performant (should be) without storage of data in map
+
+Cache spacial locality along with temporal Cache (LRU)
+    - On startup load meta data into memory, so dont have to change it
 
 Python, Java, Rust, PHP, C# connections
 
@@ -16,3 +25,4 @@ Performance improvements (make it faster - less I/O reads/writes, go routines/ch
 
 Horizontal scaling
 
+Smart LRU cache (number of times its been hit rather than just whether its been used, maybe? )

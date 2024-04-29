@@ -82,9 +82,9 @@ func tempStoreData()*TableEncapsulation{
 	schema := globalTypes.CreateTableSchema("Users",[][]string{{"id","string"},{"name","string"},{"age","integer"},{"occupation","string"}})
 	schema2 := globalTypes.CreateTableSchema("Locations",[][]string{{"id","string"},{"city","string"},{"country","string"}})
 
-	persistedDataRetrieval.CreateFile("test.txt", globalTypes.LOCATION)
-	persistedDataRetrieval.AppendFileTableMeta("test.txt",globalTypes.LOCATION,schema)
-	persistedDataRetrieval.AppendFileTableMeta("test.txt",globalTypes.LOCATION,schema2)
+	persistedDataRetrieval.CreateFile("Tables.txt", globalTypes.LOCATION)
+	persistedDataRetrieval.AppendFileTableMeta("Tables.txt",globalTypes.LOCATION,schema)
+	persistedDataRetrieval.AppendFileTableMeta("Tables.txt",globalTypes.LOCATION,schema2)
 	return allTableData
 }
 
@@ -101,8 +101,11 @@ func GetData(tableName string, key string, allTableData *TableEncapsulation) glo
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				_, okAgain := allTableData.TableInformation[tableName].TableData.Data[key]
 				if okAgain {
-					// return *allTableData.TableInformation[tableName].TableData.Data[key].Payload
-					return *persistedDataRetrieval.GetPersistedDataFile(tableName, key)
+					var byteOffset int64 = -1
+					 if allTableData.TableInformation[tableName].TableData.Data[key].DataLocation != nil{
+						byteOffset = allTableData.TableInformation[tableName].TableData.Data[key].DataLocation.ByteOffset
+					}
+					return *persistedDataRetrieval.GetPersistedDataFile(tableName, key, byteOffset)
 				}
 			}
 		}
@@ -117,7 +120,7 @@ func SetData(tableName string, key string, value globalTypes.Payload, allTableDa
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				if allTableData.TableInformation[tableName].TableData.Data[key] == nil {
 					var dataMemLocation *binaryTree.DataMemoryLocation = persistedDataRetrieval.SetPersistedDataFile(tableName, key, &value)
-					allTableData.TableInformation[tableName].TableData.Data[key] = &DataReturnType{Payload:&value,DataLocation:dataMemLocation}
+					allTableData.TableInformation[tableName].TableData.Data[key] = &DataReturnType{Payload:nil,DataLocation:dataMemLocation}
 				}
 			}
 		}
@@ -143,6 +146,17 @@ func UpdateData(tableName string, key string, value globalTypes.Payload, allTabl
 	}
 }
 
+func GetMatchingData(tableName string, innerKey string, innerMatchingValue string, allTableData *TableEncapsulation)globalTypes.Payload{
+	_, ok := allTableData.TableInformation[tableName]
+	if ok {
+		if allTableData.TableInformation[tableName].TableData != nil {
+			if allTableData.TableInformation[tableName].TableData.Data != nil {
+				return *persistedDataRetrieval.GetAllDataMatchingPersistedDataFile(tableName, innerKey, innerMatchingValue, globalTypes.MATCHING_OPEQUAL)
+			}
+		}
+	}
+	return globalTypes.CreateEmptyPayload();
+}
 
 func CreateTable(tableName string, tableSchema[][]string, allTableData *TableEncapsulation){
 	var schema globalTypes.TableSchema = globalTypes.CreateTableSchema(tableName, tableSchema)

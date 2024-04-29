@@ -13,6 +13,11 @@ type PostQueryInputType struct{
 	PartitionKey string `json:"partition_key" binding:"required"`
 }
 
+type ExtendedPayloadStructure struct{
+	Value string `json:"value" binding:"required"`
+	ExtendedValue [][]ExtendedPayloadStructure `json:"payload" binding:"required"`
+}
+
 type PostSetDataInputType struct{
 	TableName string `json:"table_name" binding:"required"`
 	PartitionKey string `json:"partition_key" binding:"required"`

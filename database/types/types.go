@@ -6,6 +6,12 @@ import (
 )
 
 const LOCATION = "./rawData/"
+const MATCHING_OPEQUAL = "EQUAL"
+
+type OtherClientPassedInfo struct{
+	InnerKey string
+	InnerKeyValue string
+}
 
 type CommandLineArguments struct {
 	CacheMaxSize int64
@@ -70,7 +76,7 @@ func ConvertPayload(payload *Payload)string{
 	
 	for key := range(payload.Item){
 		value := payload.Item[key]
-		line := key + ":{" + value.Type + ":" + value.Value + "},"
+		line := key + ":{" + value.Value + ":" + value.Type + "},"
 		fmt.Fprintf(&finalStr, "%s", line)
 	}
 	fmt.Fprintf(&finalStr, "}")
@@ -89,8 +95,8 @@ func ConvetBackToPayload(payload string)*Payload{
 		items := strings.Split(keyValuePayload, ":")
 		if len(items)==3{
     		key := items[0]
-    		valueType := items[1][1:]
-    		value := items[2][0:len(items[2])-1]
+    		value := items[1][1:]
+    		valueType := items[2][0:len(items[2])-1]
     		tmp := []string{key,value,valueType}
     		input = append(input, tmp)
 		}
@@ -100,3 +106,21 @@ func ConvetBackToPayload(payload string)*Payload{
 	return &newPayload
 }
 //ISSUE: What if comma, or {} are in value then how to handle parsing
+
+
+func VerifySchema(payload *Payload, schema [][]string)bool{
+	for index := range(schema){
+		keyValue := schema[index]
+		key := keyValue[0]
+		valueType := keyValue[1]
+		value, ok := payload.Item[key]
+		if ok{
+			if valueType != value.Type{
+				return false
+			}
+		}else{
+			return false
+		}
+	}
+	return true	
+}
