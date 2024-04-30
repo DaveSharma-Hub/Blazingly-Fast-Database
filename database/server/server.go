@@ -42,15 +42,15 @@ func postQueryDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheEx
 }
 
 func postScanDatabaseData(c *gin.Context, executeFn dataCacheClient.DataCacheExecutionType){
-	// TODO fix and pass in correct data from client
-	var inputData utils.PostQueryInputType
-	
+	var inputData utils.PostScanDataInputType
 	if err:= c.ShouldBindJSON(&inputData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
-	var returnData globalTypes.Payload = executeFn(inputData.TableName, inputData.PartitionKey, globalTypes.CreateEmptyPayload(), nil)
+
+	otherInfo := globalTypes.OtherClientPassedInfo{InnerKey:inputData.InnerKey,InnerKeyValue:inputData.InnerKeyValue, Comparator:inputData.Comparator} 
+
+	var returnData globalTypes.Payload = executeFn(inputData.TableName, "", globalTypes.CreateEmptyPayload(), &otherInfo)
 	jsonResult, err := json.Marshal(returnData.Item)
 	if err!=nil {
 		fmt.Println("ERROR")

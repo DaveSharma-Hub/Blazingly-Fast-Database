@@ -35,7 +35,7 @@ func CreateFunctionMapWrapper(dataQueryInMemoryCacheClient *lruCache.LRUCache, d
 	}
 
 	functionMap["QueryMatchingData"] = func(tableName string, key string, value globalTypes.Payload, otherInfo *globalTypes.OtherClientPassedInfo)globalTypes.Payload{
-		return persistentStoreClient.GetMatchingData(tableName, otherInfo.InnerKey, otherInfo.InnerKeyValue, dataStore)
+		return persistentStoreClient.GetMatchingData(tableName, otherInfo.InnerKey, otherInfo.InnerKeyValue, otherInfo.Comparator, dataStore)
 	}
 
 	return functionMap

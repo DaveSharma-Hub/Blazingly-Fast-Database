@@ -146,12 +146,12 @@ func UpdateData(tableName string, key string, value globalTypes.Payload, allTabl
 	}
 }
 
-func GetMatchingData(tableName string, innerKey string, innerMatchingValue string, allTableData *TableEncapsulation)globalTypes.Payload{
+func GetMatchingData(tableName string, innerKey string, innerMatchingValue string, comparator string,allTableData *TableEncapsulation)globalTypes.Payload{
 	_, ok := allTableData.TableInformation[tableName]
 	if ok {
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
-				return *persistedDataRetrieval.GetAllDataMatchingPersistedDataFile(tableName, innerKey, innerMatchingValue, globalTypes.MATCHING_OPEQUAL)
+				return *persistedDataRetrieval.GetAllDataMatchingPersistedDataFile(tableName, innerKey, innerMatchingValue, comparator)
 			}
 		}
 	}

@@ -245,7 +245,6 @@ func GetPersistedDataFile(tableName string, key string, byteOffest int64)*global
 	return globalTypes.ConvetBackToPayload(stringifiedPayload)
 }
 
-
 func GetAllDataMatchingPersistedDataFile(tableName string, innerKeyName string, innerKeyValue string,matchingOperator string)*globalTypes.Payload{
 	// this is where storage as a binary tree can help massively (maybe multi dimensional)
 	// leverage more storage for smaller time complexity
@@ -256,13 +255,15 @@ func GetAllDataMatchingPersistedDataFile(tableName string, innerKeyName string, 
 		check(err,"Error opening file for append")
 	}
 
+	defer fd.Close()
 	scanner := bufio.NewScanner(fd)
+	
 	for scanner.Scan(){
 		text := scanner.Text()
 		switch matchingOperator{
 		case globalTypes.MATCHING_OPEQUAL:
 			var reconstructed strings.Builder
-			fmt.Fprintf(&reconstructed, "{%s:{%s:", innerKeyName, innerKeyValue)
+			fmt.Fprintf(&reconstructed, "%s:{%s", innerKeyName, innerKeyValue)
 			if strings.Contains(text, reconstructed.String()) {
 				return globalTypes.ConvetBackToPayload(text)
 			}

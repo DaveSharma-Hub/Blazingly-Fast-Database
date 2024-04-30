@@ -11,6 +11,7 @@ const MATCHING_OPEQUAL = "EQUAL"
 type OtherClientPassedInfo struct{
 	InnerKey string
 	InnerKeyValue string
+	Comparator string
 }
 
 type CommandLineArguments struct {

@@ -2,6 +2,8 @@ const axios = require('axios');
 const { unmarshall } = require('./util/utilFunctions');
 
 class BFDB {
+    comparators = ["EQUAL"];
+
     constructor(databaseEndpoint){
         this.databaseEndpoint = databaseEndpoint;
     }
@@ -56,13 +58,33 @@ class BFDB {
             console.log(e);
         }
     }
-    async removeDataFromTable(tableName,dataId){
+
+    // TODO on DB side
+    // async removeDataFromTable(tableName,dataId){
+    //     try{
+    //         const endpoint = `${this.databaseEndpoint}/removeData`;
+    //         await axios.post(endpoint,{
+    //             table_name:tableName,
+    //             dataId:dataId
+    //         });
+    //     }catch(e){
+    //         console.log(e);
+    //     }
+    // }
+
+    async scanDataFromTable(tableName, innerKey, innerValue, comparator){
+        if(!this.comparators.includes(comparator)){
+            throw Error(`Comparator ${comparator} doesnt exist in ${this.comparators}`);
+        }
         try{
-            const endpoint = `${this.databaseEndpoint}/removeData`;
-            await axios.post(endpoint,{
-                tableName:tableName,
-                dataId:dataId
+            const endpoint = `${this.databaseEndpoint}/scanData`;
+            const result = await axios.post(endpoint,{
+                table_name:tableName,
+                inner_key:innerKey,
+                inner_value:innerValue,
+                comparator:comparator
             });
+            return unmarshall(JSON.parse(result.data));
         }catch(e){
             console.log(e);
         }
