@@ -119,8 +119,14 @@ func SetData(tableName string, key string, value globalTypes.Payload, allTableDa
 		if allTableData.TableInformation[tableName].TableData != nil {
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				if allTableData.TableInformation[tableName].TableData.Data[key] == nil {
-					var dataMemLocation *binaryTree.DataMemoryLocation = persistedDataRetrieval.SetPersistedDataFile(tableName, key, &value)
-					allTableData.TableInformation[tableName].TableData.Data[key] = &DataReturnType{Payload:nil,DataLocation:dataMemLocation}
+					payload, err := globalTypes.FillPayloadTillMax(&value)
+					if err != nil {
+						// need to return an error to client
+						fmt.Println("ERROR")
+					}else{
+						var dataMemLocation *binaryTree.DataMemoryLocation = persistedDataRetrieval.SetPersistedDataFile(tableName, key, payload)
+						allTableData.TableInformation[tableName].TableData.Data[key] = &DataReturnType{Payload:nil,DataLocation:dataMemLocation}
+					}
 				}
 			}
 		}
@@ -134,11 +140,13 @@ func UpdateData(tableName string, key string, value globalTypes.Payload, allTabl
 			if allTableData.TableInformation[tableName].TableData.Data != nil {
 				if allTableData.TableInformation[tableName].TableData.Data[key] != nil {
 					if allTableData.TableInformation[tableName].TableData.Data[key].Payload.Item != nil {
-						for newKey := range value.Item {
-							allTableData.TableInformation[tableName].TableData.Data[key].Payload.Item[newKey] = value.Item[newKey]
-						}
+						// for newKey := range value.Item {
+						// 	allTableData.TableInformation[tableName].TableData.Data[key].Payload.Item[newKey] = value.Item[newKey]
+						// }
+						persistedDataRetrieval.UpdatePersistedDataFile(tableName, key, &value)
 					}else{
-						allTableData.TableInformation[tableName].TableData.Data[key].Payload = &value
+						// allTableData.TableInformation[tableName].TableData.Data[key].Payload = &DataReturnType{Payload:nil,DataLocation:dataMemLocation}
+						SetData(tableName,key, value, allTableData)
 					}
 				}
 			}

@@ -3,10 +3,17 @@ package globalTypes
 import (
 	"strings"
 	"fmt"
+	"strconv"
+	"errors"
 )
 
 const LOCATION = "./rawData/"
 const MATCHING_OPEQUAL = "EQUAL"
+const MAXPAYLOAD_BYTE_SIZE = 5000
+const EMPTY_KEY = "EMPTY_KEY"
+const EMPTY_VALUE = "+"
+// Maybe change to multiple of 2 instead
+const removedSize = 5+9+6+1 // size of colons and brackets + EMPTY_KEY + string size
 
 type OtherClientPassedInfo struct{
 	InnerKey string
@@ -96,10 +103,12 @@ func ConvetBackToPayload(payload string)*Payload{
 		items := strings.Split(keyValuePayload, ":")
 		if len(items)==3{
     		key := items[0]
-    		value := items[1][1:]
-    		valueType := items[2][0:len(items[2])-1]
-    		tmp := []string{key,value,valueType}
-    		input = append(input, tmp)
+			if key != EMPTY_KEY{
+				value := items[1][1:]
+				valueType := items[2][0:len(items[2])-1]
+				tmp := []string{key,value,valueType}
+				input = append(input, tmp)
+			}
 		}
 	}
 
@@ -124,4 +133,31 @@ func VerifySchema(payload *Payload, schema [][]string)bool{
 		}
 	}
 	return true	
+}
+
+func getPayloadSize(payload *Payload)uint64{
+	var convertedPayload string = ConvertPayload(payload)
+	return (uint64)(len(convertedPayload)) 
+}
+
+func FillPayloadTillMax(payload *Payload)(*Payload,error){
+	currentSize := getPayloadSize(payload)
+	fmt.Println("currentSize", currentSize)
+	fmt.Println("MAXPAYLOAD_BYTE_SIZE", MAXPAYLOAD_BYTE_SIZE)
+	fmt.Println("first", currentSize < MAXPAYLOAD_BYTE_SIZE)
+	fmt.Println("second", (currentSize + removedSize) < MAXPAYLOAD_BYTE_SIZE)
+
+	if currentSize < MAXPAYLOAD_BYTE_SIZE && (currentSize + removedSize < MAXPAYLOAD_BYTE_SIZE){
+		extraNeeded := MAXPAYLOAD_BYTE_SIZE - (currentSize + removedSize)
+		var addedValue strings.Builder
+		for i:= (uint64)(0);i<extraNeeded;i++{
+			fmt.Fprintf(&addedValue, "%s", EMPTY_VALUE)
+		}
+		payload.Item[EMPTY_KEY] = AtomicItem{Value:addedValue.String(), Type:"string"}
+		return payload, nil
+	}else{
+		strSize:= strconv.Itoa(MAXPAYLOAD_BYTE_SIZE)
+		errorMessage := "Invalid payload size: greater than" +  strSize
+		return payload, errors.New(errorMessage)
+	}
 }

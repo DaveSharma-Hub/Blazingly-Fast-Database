@@ -275,3 +275,60 @@ func GetAllDataMatchingPersistedDataFile(tableName string, innerKeyName string, 
 	payload := globalTypes.CreateEmptyPayload()
 	return &payload
 }
+
+func matchString(superString string, subString string)(bool,int){
+	var matching bool = false
+	prevIndex := 0
+	for i:=0;i<len(superString);i++{
+		if superString[i] == subString[0]{
+			matching = true
+			prevIndex = i
+			j:=0
+			for ;j<len(subString) && i<len(superString);j++{
+				if subString[j] == superString[i]{
+					i++
+				}else{
+					matching = false
+					i = prevIndex
+					break
+				}
+			}
+			if j<len(subString){
+			    matching = false
+			    i = prevIndex
+			}
+		}
+		if matching{
+			return true, prevIndex
+		}
+	}
+	return false, -1
+}
+
+func UpdatePersistedDataFile(tableName string, key string, payload *globalTypes.Payload){
+	fileNameMetaData := globalTypes.LOCATION + tableName + "_metaData.txt"
+	fileName := globalTypes.LOCATION + tableName + ".txt"
+
+	bytes, err := GetLineNumber(fileNameMetaData, key)
+	if err != nil {
+		fmt.Println("ERROR")
+		return
+	}
+	line,err := GetPayloadByLineNumber(fileName, bytes)
+	if err != nil {
+		fmt.Println("ERROR")
+		return
+	}
+
+	for keys := range(payload.Item){
+		value := payload.Item[keys].Value
+		valueType := payload.Item[keys].Value
+
+
+		constructedKeyValue := "{" + value + ":" + valueType + "}"
+		doesItMatch, index := matchString(line, constructedKeyValue)
+		fmt.Println(doesItMatch, index)
+		//TODO if matches then update the specific key range of bytes from starting index to ending
+	}
+
+}
