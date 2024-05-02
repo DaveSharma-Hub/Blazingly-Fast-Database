@@ -305,14 +305,31 @@ func matchString(superString string, subString string)(bool,int){
 	return false, -1
 }
 
-func UpdatePersistedDataFile(tableName string, key string, payload *globalTypes.Payload){
+func getEndingByteRange(start int, line string)int{
+	foundTwice := 0
+	for i:=start;i<len(line);i++{
+		if foundTwice==2 && line[i] == '}'{
+			return i
+		}
+		if foundTwice<2 && line[i] == ':'{
+			foundTwice++
+		}
+	}
+	return -1
+}
+
+func UpdatePersistedDataFile(tableName string, key string, byteOffset int64, payload *globalTypes.Payload){
+	fmt.Println("CALLED")
 	fileNameMetaData := globalTypes.LOCATION + tableName + "_metaData.txt"
 	fileName := globalTypes.LOCATION + tableName + ".txt"
-
-	bytes, err := GetLineNumber(fileNameMetaData, key)
-	if err != nil {
-		fmt.Println("ERROR")
-		return
+	bytes := byteOffset
+	if bytes == -1{
+		bytesValue, err := GetLineNumber(fileNameMetaData, key)
+		bytes = bytesValue
+		if err != nil {
+			fmt.Println("ERROR")
+			return
+		}
 	}
 	line,err := GetPayloadByLineNumber(fileName, bytes)
 	if err != nil {
@@ -320,15 +337,30 @@ func UpdatePersistedDataFile(tableName string, key string, payload *globalTypes.
 		return
 	}
 
+	f, err := os.OpenFile(fileName, os.O_CREATE | os.O_WRONLY, os.ModeAppend)
+    if err != nil {
+        panic("File not found")
+    }
+	defer f.Close()
+
+
 	for keys := range(payload.Item){
 		value := payload.Item[keys].Value
-		valueType := payload.Item[keys].Value
+		valueType := payload.Item[keys].Type
 
-
-		constructedKeyValue := "{" + value + ":" + valueType + "}"
+		constructedKeyValue := keys + ":{"
 		doesItMatch, index := matchString(line, constructedKeyValue)
 		fmt.Println(doesItMatch, index)
-		//TODO if matches then update the specific key range of bytes from starting index to ending
-	}
 
+		startingBytes := index
+		endingBytes := getEndingByteRange(startingBytes, line) + 1
+		newData := keys+":{"+value+":"+valueType+"},"
+
+		fmt.Println(endingBytes, newData)
+		//TODO if matches then update the specific key range of bytes from starting index to ending
+		whence := io.SeekStart
+		_, err = f.Seek(int64(startingBytes), whence)
+		f.WriteString(newData)
+		f.Sync() //flush to disk
+	}
 }

@@ -9,7 +9,7 @@ import (
 
 const LOCATION = "./rawData/"
 const MATCHING_OPEQUAL = "EQUAL"
-const MAXPAYLOAD_BYTE_SIZE = 5000
+const MAXPAYLOAD_BYTE_SIZE = 2500
 const EMPTY_KEY = "EMPTY_KEY"
 const EMPTY_VALUE = "+"
 // Maybe change to multiple of 2 instead
@@ -110,6 +110,7 @@ func ConvetBackToPayload(payload string)*Payload{
 				input = append(input, tmp)
 			}
 		}
+		fmt.Println("keyValuePayload", keyValuePayload)
 	}
 
 	newPayload := CreatePayload(input)
