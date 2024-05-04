@@ -157,6 +157,31 @@ func UpdateItem(cache *LRUCache, key string, value globalTypes.Payload){
     }
 }
 
+func RemoveItem(cache *LRUCache, key string){
+    tmpNode := cache.lruMap[key]
+    if tmpNode != nil{
+        //does exist
+
+        if cache.list.head == tmpNode {
+            cache.list.head = tmpNode.next
+            if tmpNode.next != nil {
+                tmpNode.next.prev = nil
+            }
+        }else if cache.list.end == tmpNode {
+            cache.list.end = tmpNode.prev
+            if tmpNode.prev != nil {
+                tmpNode.prev.next = nil
+            }
+        }else {
+            tmpNode.prev.next = tmpNode.next
+            tmpNode.next.prev = tmpNode.prev
+            delete(cache.lruMap, key)
+        }
+        tmpNode.next = nil
+        tmpNode.prev = nil
+    }
+}
+
 // list *LinkedList
 //     lruMap map[string]*Node
 

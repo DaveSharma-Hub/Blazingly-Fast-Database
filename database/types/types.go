@@ -13,7 +13,7 @@ const MAXPAYLOAD_BYTE_SIZE = 2500
 const EMPTY_KEY = "EMPTY_KEY"
 const EMPTY_VALUE = "+"
 // Maybe change to multiple of 2 instead
-const removedSize = 5+9+6+1 // size of colons and brackets + EMPTY_KEY + string size
+const RemovedSize = 5+9+6+1 // size of colons and brackets + EMPTY_KEY + string size
 
 type OtherClientPassedInfo struct{
 	InnerKey string
@@ -146,10 +146,10 @@ func FillPayloadTillMax(payload *Payload)(*Payload,error){
 	fmt.Println("currentSize", currentSize)
 	fmt.Println("MAXPAYLOAD_BYTE_SIZE", MAXPAYLOAD_BYTE_SIZE)
 	fmt.Println("first", currentSize < MAXPAYLOAD_BYTE_SIZE)
-	fmt.Println("second", (currentSize + removedSize) < MAXPAYLOAD_BYTE_SIZE)
+	fmt.Println("second", (currentSize + RemovedSize) < MAXPAYLOAD_BYTE_SIZE)
 
-	if currentSize < MAXPAYLOAD_BYTE_SIZE && (currentSize + removedSize < MAXPAYLOAD_BYTE_SIZE){
-		extraNeeded := MAXPAYLOAD_BYTE_SIZE - (currentSize + removedSize)
+	if currentSize < MAXPAYLOAD_BYTE_SIZE && (currentSize + RemovedSize < MAXPAYLOAD_BYTE_SIZE){
+		extraNeeded := MAXPAYLOAD_BYTE_SIZE - (currentSize + RemovedSize)
 		var addedValue strings.Builder
 		for i:= (uint64)(0);i<extraNeeded;i++{
 			fmt.Fprintf(&addedValue, "%s", EMPTY_VALUE)

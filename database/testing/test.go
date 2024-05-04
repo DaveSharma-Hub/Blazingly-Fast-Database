@@ -21,6 +21,8 @@ func MainTest(){
 	// // va := globalTypes.ConvetBackToPayload(str)
 	// // fmt.Println(globalTypes.ConvertPayload(va))
 	// // v := persistentStoreClient.GetMatchingData("Users","name", "Bob", "EQUAL", perisistentStore)
+	
+	
 	v:= persistentStoreClient.GetData("Users","1", perisistentStore)
 	str := globalTypes.ConvertPayload(&v)
 	fmt.Println(str)

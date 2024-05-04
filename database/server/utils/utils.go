@@ -26,6 +26,10 @@ type PostScanDataInputType struct{
 	Comparator string `json:"comparator" binding:"required"`
 }
 
+type PostRemoveDataInputType struct{
+	TableName string `json:"table_name" binding:"required"`
+	PartitionKey string `json:"partition_key" binding:"required"`
+}
 
 type ExtendedPayloadStructure struct{
 	Value string `json:"value" binding:"required"`

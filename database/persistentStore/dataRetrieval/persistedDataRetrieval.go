@@ -343,7 +343,7 @@ func UpdatePersistedDataFile(tableName string, key string, byteOffset int64, pay
     }
 	defer f.Close()
 
-
+	/// TODO rename this function to replace data, and create update to update entire data with new payload
 	for keys := range(payload.Item){
 		value := payload.Item[keys].Value
 		valueType := payload.Item[keys].Type
@@ -363,4 +363,39 @@ func UpdatePersistedDataFile(tableName string, key string, byteOffset int64, pay
 		f.WriteString(newData)
 		f.Sync() //flush to disk
 	}
+}
+
+func RemoveDataPersistedFile(tableName string, key string, byteOffset int64){
+	fileNameMetaData := globalTypes.LOCATION + tableName + "_metaData.txt"
+	fileName := globalTypes.LOCATION + tableName + ".txt"
+	bytes := byteOffset
+	if bytes == -1 {
+		bytesValue, err := GetLineNumber(fileNameMetaData, key)
+		bytes = bytesValue
+		if err != nil {
+			fmt.Println("ERROR")
+			return
+		}
+	}
+	f, err := os.OpenFile(fileName, os.O_CREATE | os.O_WRONLY, os.ModeAppend)
+    if err != nil {
+        panic("File not found")
+    }
+	defer f.Close()
+
+	whence := io.SeekStart
+	_, err = f.Seek(bytes, whence)
+	if err != nil {
+        panic("Byte range not found")
+    }
+
+	var replaceData strings.Builder
+	fmt.Fprintf(&replaceData, "%s%s%s", "{",globalTypes.EMPTY_KEY,":{")
+	for i:=0;i<globalTypes.MAXPAYLOAD_BYTE_SIZE-globalTypes.RemovedSize;i++{
+		fmt.Fprintf(&replaceData, "%s", globalTypes.EMPTY_VALUE)
+	}	
+	fmt.Fprintf(&replaceData, "%s", "},}",globalTypes.EMPTY_KEY)
+
+	f.WriteString(replaceData.String())
+	f.Sync() //flush to disk
 }

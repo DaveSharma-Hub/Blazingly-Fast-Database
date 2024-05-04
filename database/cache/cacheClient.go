@@ -22,6 +22,10 @@ func ExecuteOperationUpdateItem(inMemoryLRUCache *lruCache.LRUCache, key string,
 	lruCache.UpdateItem(inMemoryLRUCache, key, dataPayload)
 }
 
+func ExecuteOperationRemoveItem(inMemoryLRUCache *lruCache.LRUCache, key string){
+	lruCache.RemoveItem(inMemoryLRUCache, key)
+}
+
 func PrintLL(inMemoryLRUCache *lruCache.LRUCache){
 	lruCache.PrintItems(inMemoryLRUCache)
 }	
