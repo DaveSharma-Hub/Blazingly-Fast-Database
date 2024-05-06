@@ -13,7 +13,9 @@ const MAXPAYLOAD_BYTE_SIZE = 2500
 const EMPTY_KEY = "EMPTY_KEY"
 const EMPTY_VALUE = "+"
 // Maybe change to multiple of 2 instead
-const RemovedSize = 5+9+6+1 // size of colons and brackets + EMPTY_KEY + string size
+// const RemovedSize = 5+9+6+1 // size of colons and brackets + EMPTY_KEY + string size
+const RemovedSize = 9+6+2+2 // size of colons and brackets + EMPTY_KEY + string size
+// 9 = length of "EMPTY_KEY", 6 = length of "string", 2 = # of colons, 2 = # of parenthesis.
 
 type OtherClientPassedInfo struct{
 	InnerKey string

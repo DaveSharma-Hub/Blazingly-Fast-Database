@@ -169,6 +169,7 @@ func RemoveData(tableName string, key string, value globalTypes.Payload, allTabl
 							byteOffset = allTableData.TableInformation[tableName].TableData.Data[key].DataLocation.ByteOffset
 						}
 						persistedDataRetrieval.RemoveDataPersistedFile(tableName, key, byteOffset)
+						delete(allTableData.TableInformation[tableName].TableData.Data,key)
 					}
 				}
 			}

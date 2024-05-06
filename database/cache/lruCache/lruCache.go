@@ -175,8 +175,8 @@ func RemoveItem(cache *LRUCache, key string){
         }else {
             tmpNode.prev.next = tmpNode.next
             tmpNode.next.prev = tmpNode.prev
-            delete(cache.lruMap, key)
         }
+        delete(cache.lruMap, key)
         tmpNode.next = nil
         tmpNode.prev = nil
     }

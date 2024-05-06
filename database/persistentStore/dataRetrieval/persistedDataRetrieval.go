@@ -344,25 +344,21 @@ func UpdatePersistedDataFile(tableName string, key string, byteOffset int64, pay
 	defer f.Close()
 
 	/// TODO rename this function to replace data, and create update to update entire data with new payload
+	originalPayload := globalTypes.ConvetBackToPayload(line)
+	
 	for keys := range(payload.Item){
-		value := payload.Item[keys].Value
-		valueType := payload.Item[keys].Type
-
-		constructedKeyValue := keys + ":{"
-		doesItMatch, index := matchString(line, constructedKeyValue)
-		fmt.Println(doesItMatch, index)
-
-		startingBytes := index
-		endingBytes := getEndingByteRange(startingBytes, line) + 1
-		newData := keys+":{"+value+":"+valueType+"},"
-
-		fmt.Println(endingBytes, newData)
-		//TODO if matches then update the specific key range of bytes from starting index to ending
-		whence := io.SeekStart
-		_, err = f.Seek(int64(startingBytes), whence)
-		f.WriteString(newData)
-		f.Sync() //flush to disk
+		_,ok := originalPayload.Item[keys]
+		if ok{
+			originalPayload.Item[keys] = payload.Item[keys]
+		}
 	}
+	
+	globalTypes.FillPayloadTillMax(originalPayload)
+	newPayloadAsAString := globalTypes.ConvertPayload(originalPayload)
+	whence := io.SeekStart
+	_, err = f.Seek(int64(bytes), whence)
+	f.WriteString(newPayloadAsAString)
+	f.Sync() //flush to disk
 }
 
 func RemoveDataPersistedFile(tableName string, key string, byteOffset int64){
@@ -391,10 +387,10 @@ func RemoveDataPersistedFile(tableName string, key string, byteOffset int64){
 
 	var replaceData strings.Builder
 	fmt.Fprintf(&replaceData, "%s%s%s", "{",globalTypes.EMPTY_KEY,":{")
-	for i:=0;i<globalTypes.MAXPAYLOAD_BYTE_SIZE-globalTypes.RemovedSize;i++{
+	for i:=0;i<globalTypes.MAXPAYLOAD_BYTE_SIZE-globalTypes.RemovedSize-2;i++{
 		fmt.Fprintf(&replaceData, "%s", globalTypes.EMPTY_VALUE)
 	}	
-	fmt.Fprintf(&replaceData, "%s", "},}",globalTypes.EMPTY_KEY)
+	fmt.Fprintf(&replaceData, "%s", ":string},}\n")
 
 	f.WriteString(replaceData.String())
 	f.Sync() //flush to disk

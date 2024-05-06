@@ -59,18 +59,17 @@ class BFDB {
         }
     }
 
-    // TODO on DB side
-    // async removeDataFromTable(tableName,dataId){
-    //     try{
-    //         const endpoint = `${this.databaseEndpoint}/removeData`;
-    //         await axios.post(endpoint,{
-    //             table_name:tableName,
-    //             dataId:dataId
-    //         });
-    //     }catch(e){
-    //         console.log(e);
-    //     }
-    // }
+    async removeDataFromTable(tableName,key){
+        try{
+            const endpoint = `${this.databaseEndpoint}/removeData`;
+            await axios.post(endpoint,{
+                table_name:tableName,
+                partition_key:key
+            });
+        }catch(e){
+            console.log(e);
+        }
+    }
 
     async scanDataFromTable(tableName, innerKey, innerValue, comparator){
         if(!this.comparators.includes(comparator)){
