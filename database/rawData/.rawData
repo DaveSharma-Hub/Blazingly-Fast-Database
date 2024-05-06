@@ -29,3 +29,5 @@ Performance improvements (make it faster - less I/O reads/writes, go routines/ch
 Horizontal scaling
 
 Smart LRU cache (number of times its been hit rather than just whether its been used, maybe? )
+
+Connectors utility functions so pass in json instead of array
