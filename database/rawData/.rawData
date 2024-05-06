@@ -10,8 +10,8 @@ Read from byte instead of line <- Use Tensor-like structure for that
  - TODO: Create a Data Structure to store byte offset (like strides)
  - TODO: If change/update data how would byte offsets be altered? *** Remove and Update data? byte offset (unless max amount of data stored per an item that works then except for delete/remove, can replace it so do not have to reformat otherwise becomes sparse non-optimized space storage??) 
   -- FINISHED the max payload size persisted in file
-  -- TODO update command
-  -- TODO remove command
+  -- TODO update command DONE
+  -- TODO remove command DONE
 
 Hashfunction for key to line number instead of just a map
     - Right now using in memory map for key of a particular table
