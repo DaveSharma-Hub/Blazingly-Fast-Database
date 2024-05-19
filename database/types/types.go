@@ -85,10 +85,20 @@ func ConvertPayload(payload *Payload)string{
 	fmt.Fprintf(&finalStr, "{")
 	
 	for key := range(payload.Item){
-		value := payload.Item[key]
-		line := key + ":{" + value.Value + ":" + value.Type + "},"
+		if key != EMPTY_KEY{
+			value := payload.Item[key]
+			line := key + ":{" + value.Value + ":" + value.Type + "},"
+			fmt.Fprintf(&finalStr, "%s", line)
+		}
+	}
+	lastLine, ok := payload.Item[EMPTY_KEY]
+
+	if ok{
+		value := lastLine
+		line := EMPTY_KEY + ":{" + value.Value + ":" + value.Type + "},"
 		fmt.Fprintf(&finalStr, "%s", line)
 	}
+
 	fmt.Fprintf(&finalStr, "}")
 	return finalStr.String()
 }
@@ -129,9 +139,11 @@ func VerifySchema(payload *Payload, schema [][]string)bool{
 		value, ok := payload.Item[key]
 		if ok{
 			if valueType != value.Type{
+				fmt.Println("VALUE:"+valueType+" - "+value.Type)
 				return false
 			}
 		}else{
+			fmt.Println("KEY"+key)
 			return false
 		}
 	}

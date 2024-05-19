@@ -102,9 +102,9 @@ func GetData(tableName string, key string, allTableData *TableEncapsulation) glo
 				_, okAgain := allTableData.TableInformation[tableName].TableData.Data[key]
 				if okAgain {
 					var byteOffset int64 = -1
-					 if allTableData.TableInformation[tableName].TableData.Data[key].DataLocation != nil{
-						byteOffset = allTableData.TableInformation[tableName].TableData.Data[key].DataLocation.ByteOffset
-					}
+					//  if allTableData.TableInformation[tableName].TableData.Data[key].DataLocation != nil{
+					// 	byteOffset = allTableData.TableInformation[tableName].TableData.Data[key].DataLocation.ByteOffset
+					// }
 					return *persistedDataRetrieval.GetPersistedDataFile(tableName, key, byteOffset)
 				}
 			}
@@ -124,6 +124,8 @@ func SetData(tableName string, key string, value globalTypes.Payload, allTableDa
 						// need to return an error to client
 						fmt.Println("ERROR")
 					}else{
+						fmt.Println("WRITING")
+
 						var dataMemLocation *binaryTree.DataMemoryLocation = persistedDataRetrieval.SetPersistedDataFile(tableName, key, payload)
 						allTableData.TableInformation[tableName].TableData.Data[key] = &DataReturnType{Payload:nil,DataLocation:dataMemLocation}
 					}

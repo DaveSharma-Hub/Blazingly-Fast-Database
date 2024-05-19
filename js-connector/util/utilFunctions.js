@@ -9,7 +9,7 @@ const convertToType = (value, type) => {
         default:
             return String(value);
     }
-}
+};
 
 
 const unmarshall = (marshalledJson) => {
@@ -22,10 +22,26 @@ const unmarshall = (marshalledJson) => {
         });
         return newObj;
     }
+};
+
+const arrayToObjectConversion = (array) => {
+    return array.reduce((acc,curr)=>{
+        acc[curr[0]] = {
+            value:convertToType(curr[1], curr[2]),
+            type:curr[2]
+        } 
+        return acc;
+    },{});
+};
+
+const objectToArrayConversion = (obj) => {
+    return Object.entries(obj).map(([key,value])=>{
+        return [key, String(value.value), value.type];
+    });
 }
 
-
-
 module.exports = {
-    unmarshall:unmarshall
+    unmarshall:unmarshall,
+    arrayToObjectConversion:arrayToObjectConversion,
+    objectToArrayConversion: objectToArrayConversion
 }

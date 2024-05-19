@@ -4,6 +4,7 @@ import (
 	// "bufio"
     "fmt"
     // "log"
+	"math"
 	"bufio"
     "os"
 	"io"
@@ -30,6 +31,27 @@ func CreateFile(fileName string, location string){
 }
 
 
+func ReadFileFromLine(begByte int64, count int64, fileName string, innerKeyName string, innerKeyValue string, matchingOperator string, c chan string){
+	// fmt.Println("CALLED")
+	for i:=int64(0);i<count;i++{
+		byteValue := begByte + (globalTypes.MAXPAYLOAD_BYTE_SIZE + 2)* i
+		// fmt.Println("byte:"+strconv.Itoa(int(byteValue)))
+		line,_ := GetPayloadByLineNumber(fileName, int64(byteValue))
+		// fmt.Println("line:"+line)
+		switch matchingOperator{
+		case globalTypes.MATCHING_OPEQUAL:
+			var reconstructed strings.Builder
+			fmt.Fprintf(&reconstructed, "%s:{%s", innerKeyName, innerKeyValue)
+			if strings.Contains(line, reconstructed.String()) {
+				c <- line
+			}
+		default:
+			//do nothing
+		}
+	}
+	c <- "{}"
+}
+
 func GetLineNumber(filename string, key string)(int64,error){
 	f,err := os.OpenFile(filename, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -50,6 +72,37 @@ func GetLineNumber(filename string, key string)(int64,error){
 	return int64(lineNumber), errors.New("NOT_FOUND")
 }
 
+func SearchLineConcurrently(fileName string, innerKeyName string, innerKeyValue string, matchingOperator string)(*globalTypes.Payload,error){
+	var numberOfChannels int64 = 4 // get from number of processes by os maybe?
+	
+	var channels = make([]chan string,numberOfChannels)
+	totalSize,_ := byteCounter(fileName)
+	numberOfLines := int64(totalSize/ globalTypes.MAXPAYLOAD_BYTE_SIZE)
+	if numberOfLines < numberOfChannels {
+		numberOfChannels = 1
+	}
+	chunkSize := int64(math.Ceil(float64(numberOfLines/ numberOfChannels)))
+
+	for i:=int64(0);i<numberOfChannels;i++{
+		c := make(chan string)
+		channels[i] = c
+		beg := (i * chunkSize) * (globalTypes.MAXPAYLOAD_BYTE_SIZE)
+		// fmt.Println("beg"+strconv.Itoa(int(beg)))
+		// fmt.Println("chunkSize"+strconv.Itoa(int(chunkSize)))
+		if beg + chunkSize*globalTypes.MAXPAYLOAD_BYTE_SIZE > totalSize {
+			chunkSize = int64((totalSize - beg) / (globalTypes.MAXPAYLOAD_BYTE_SIZE))
+		}
+		go ReadFileFromLine(beg, chunkSize, fileName, innerKeyName, innerKeyValue, matchingOperator, c)
+	}
+	finalLine := "{}"
+	for i:=int64(0);i<numberOfChannels;i++{
+		output := <- channels[i]
+		if output != "{}" {
+			finalLine = output
+		}
+	}
+	return globalTypes.ConvetBackToPayload(finalLine),nil
+}
 func GetPayloadByLineNumber(fileName string, lineNumber int64)(string,error){
 	f,err := os.OpenFile(fileName, os.O_APPEND|os.O_RDONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -162,6 +215,7 @@ func SetPersistedDataFile(tableName string, key string, value *globalTypes.Paylo
 	isValid := globalTypes.VerifySchema(value, schema)
 	if !isValid {
 		// need to change what you return, can notify the user that incorrect schema
+		fmt.Println("INCORRECT SCHEMA")
 		return nil
 	}
 
@@ -228,6 +282,7 @@ func GetPersistedDataFile(tableName string, key string, byteOffest int64)*global
 	byteNumber := byteOffest
 	if byteNumber == -1{
 		bytes, err := GetLineNumber(fileNameMetaData, key)
+		fmt.Println("bytes:"+strconv.Itoa(int(bytes)))
 		byteNumber = bytes
 		if err != nil{
 			payload := globalTypes.CreateEmptyPayload()
@@ -249,31 +304,42 @@ func GetAllDataMatchingPersistedDataFile(tableName string, innerKeyName string, 
 	// this is where storage as a binary tree can help massively (maybe multi dimensional)
 	// leverage more storage for smaller time complexity
 
-	fileName := globalTypes.LOCATION + tableName + ".txt"
-	fd, err := os.OpenFile(fileName, os.O_RDONLY, 0600)
-	if err!=nil {
-		check(err,"Error opening file for append")
-	}
+	// fileName := globalTypes.LOCATION + tableName + ".txt"
+	// fd, err := os.OpenFile(fileName, os.O_RDONLY, 0600)
+	// if err!=nil {
+	// 	check(err,"Error opening file for append")
+	// }
 
-	defer fd.Close()
-	scanner := bufio.NewScanner(fd)
+	// defer fd.Close()
+	// scanner := bufio.NewScanner(fd)
 	
-	for scanner.Scan(){
-		text := scanner.Text()
-		switch matchingOperator{
-		case globalTypes.MATCHING_OPEQUAL:
-			var reconstructed strings.Builder
-			fmt.Fprintf(&reconstructed, "%s:{%s", innerKeyName, innerKeyValue)
-			if strings.Contains(text, reconstructed.String()) {
-				return globalTypes.ConvetBackToPayload(text)
-			}
-		default:
-			//do nothing
-		}
+	// for scanner.Scan(){
+	// 	text := scanner.Text()
+	// 	switch matchingOperator{
+	// 	case globalTypes.MATCHING_OPEQUAL:
+	// 		var reconstructed strings.Builder
+	// 		fmt.Fprintf(&reconstructed, "%s:{%s", innerKeyName, innerKeyValue)
+	// 		if strings.Contains(text, reconstructed.String()) {
+	// 			return globalTypes.ConvetBackToPayload(text)
+	// 		}
+	// 	default:
+	// 		//do nothing
+	// 	}
+	// }
+
+	// payload := globalTypes.CreateEmptyPayload()
+	// return &payload
+
+	// ====
+	fileName := globalTypes.LOCATION + tableName + ".txt"
+
+	payload, err := SearchLineConcurrently(fileName, innerKeyName, innerKeyValue, matchingOperator)
+
+	if err != nil {
+		panic("Error")
 	}
 
-	payload := globalTypes.CreateEmptyPayload()
-	return &payload
+	return payload
 }
 
 func matchString(superString string, subString string)(bool,int){
